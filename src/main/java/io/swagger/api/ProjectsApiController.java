@@ -2,6 +2,7 @@ package io.swagger.api;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,6 +32,7 @@ import io.swagger.model.SkillId;
 
 import io.swagger.annotations.*;
 
+import org.joda.time.DateTime;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -372,8 +374,8 @@ public class ProjectsApiController implements ProjectsApi {
 				BigDecimal hoursPerWeekAndFullTimeResource = rs.getBigDecimal("hours_per_week_and_full_time_resource");
 				List<Resource> list = new ArrayList<Resource>();
 				
-				Connection con2 = getConnection();
-				Statement stmt2 = con2.createStatement();
+				//Connection con2 = getConnection();
+				Statement stmt2 = con.createStatement();
 				ResultSet rs2 = stmt2.executeQuery("select * from resources where idProject = " + id);
 				while(rs2.next()){
 					int idR = rs2.getInt("id");
@@ -408,7 +410,35 @@ public class ProjectsApiController implements ProjectsApi {
     public ResponseEntity<Release> getRelease(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the release",required=true ) @PathVariable("releaseId") BigDecimal releaseId) {
         // do some magic!
-        return new ResponseEntity<Release>(HttpStatus.OK);
+    	Connection con = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		Release release = new Release();
+		
+		try {
+			con = getConnection();
+			stmt = con.createStatement();
+			rs = stmt.executeQuery("select * from releases where idProject = " + projectId + " and id = " + releaseId);
+			
+			while(rs.next()){
+				int id = rs.getInt("id");
+				String name = rs.getString("name");
+				String description = rs.getString("description");
+				Date starts_at = rs.getDate("starts_at");
+				Date deadline = rs.getDate("deadline");
+				
+				release.setId(id);
+				release.setName(name);
+				release.setDescription(description);
+				release.setStartsAt(starts_at);
+				release.setDeadline(deadline);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        
+        HttpHeaders responseHeaders = new HttpHeaders();  
+        return new ResponseEntity<Release>(release, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<List<Feature>> getReleaseFeatures(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
@@ -425,7 +455,43 @@ public class ProjectsApiController implements ProjectsApi {
 
     public ResponseEntity<List<Release>> getReleases(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId) {
         // do some magic!
-        return new ResponseEntity<List<Release>>(HttpStatus.OK);
+    	Connection con = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		int id;
+		String name = null;
+		String description = null;
+		Date starts_at = null;
+		Date deadline = null;
+		List<Release> list = new ArrayList<Release>();
+		
+		try {
+			con = getConnection();
+			stmt = con.createStatement();
+			rs = stmt.executeQuery("select * from releases where idProject = " + projectId);
+			
+			while(rs.next()){
+				id = rs.getInt("id");
+				name = rs.getString("name");
+				description = rs.getString("description");
+				starts_at = rs.getDate("starts_at");
+				deadline = rs.getDate("deadline");
+				
+				Release release = new Release();
+				release.setId(id);
+				release.setName(name);
+				release.setDescription(description);
+				release.setStartsAt(starts_at);
+				release.setDeadline(deadline);
+				
+				list.add(release);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        
+        HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<List<Release>>(list, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Feature> modifyFeature(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,

@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.model.Resource;
+
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import org.joda.time.DateTime;
@@ -26,10 +28,10 @@ public class Release   {
   private String description = null;
 
   @JsonProperty("starts_at")
-  private DateTime startsAt = null;
+  private Date startsAt = null;
 
   @JsonProperty("deadline")
-  private DateTime deadline = null;
+  private Date deadline = null;
 
   @JsonProperty("resources")
   private List<Resource> resources = new ArrayList<Resource>();
@@ -88,7 +90,7 @@ public class Release   {
     this.description = description;
   }
 
-  public Release startsAt(DateTime startsAt) {
+  public Release startsAt(Date startsAt) {
     this.startsAt = startsAt;
     return this;
   }
@@ -98,15 +100,15 @@ public class Release   {
    * @return startsAt
   **/
   @ApiModelProperty(value = "")
-  public DateTime getStartsAt() {
+  public Date getStartsAt() {
     return startsAt;
   }
 
-  public void setStartsAt(DateTime startsAt) {
+  public void setStartsAt(Date startsAt) {
     this.startsAt = startsAt;
   }
 
-  public Release deadline(DateTime deadline) {
+  public Release deadline(Date deadline) {
     this.deadline = deadline;
     return this;
   }
@@ -116,12 +118,12 @@ public class Release   {
    * @return deadline
   **/
   @ApiModelProperty(value = "")
-  public DateTime getDeadline() {
+  public Date getDeadline() {
     return deadline;
   }
 
-  public void setDeadline(DateTime deadline) {
-    this.deadline = deadline;
+  public void setDeadline(Date deadline2) {
+    this.deadline = deadline2;
   }
 
   public Release resources(List<Resource> resources) {
