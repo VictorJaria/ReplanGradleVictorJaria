@@ -240,7 +240,7 @@ public class ProjectsApiController implements ProjectsApi {
 		String effortUnit = null;
 		BigDecimal hoursPerEffortUnit = null;
 		BigDecimal hoursPerWeekAndFullTimeResource = null;
-		//String resources = null;
+		List<Resource> list = new ArrayList<Resource>();
 		
 		try {
 			con = getConnection();
@@ -254,6 +254,21 @@ public class ProjectsApiController implements ProjectsApi {
 				hoursPerEffortUnit = rs.getBigDecimal("hours_per_effort_unit");
 				hoursPerWeekAndFullTimeResource = rs.getBigDecimal("hours_per_week_and_full_time_resource");
 			}
+			
+			stmt = con.createStatement();
+			rs = stmt.executeQuery("select * from resources where idProject = " + projectId);
+			while(rs.next()){
+				id = rs.getInt("id");
+				name = rs.getString("name");
+				description = rs.getString("description");
+				
+				Resource resource = new Resource();
+				resource.setId(id);
+				resource.setName(name);
+				resource.setDescription(description);
+				list.add(resource);
+			}
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -265,7 +280,7 @@ public class ProjectsApiController implements ProjectsApi {
         project.setEffortUnit(effortUnit);
         project.setHoursPerEffortUnit(hoursPerEffortUnit);
         project.setHoursPerWeekAndFullTimeResource(hoursPerWeekAndFullTimeResource);
-        //project.setResources(resources);
+        project.setResources(list);
         
         HttpHeaders responseHeaders = new HttpHeaders();
         return new ResponseEntity<Project>(project, responseHeaders, HttpStatus.OK);
@@ -339,7 +354,55 @@ public class ProjectsApiController implements ProjectsApi {
 
     public ResponseEntity<List<Project>> getProjects() {
         // do some magic!
-        return new ResponseEntity<List<Project>>(HttpStatus.OK);
+    	Connection con = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		List<Project> projects = new ArrayList<Project>();
+		
+		try {
+			con = getConnection();
+			stmt = con.createStatement();
+			rs = stmt.executeQuery("select * from projects");
+			while(rs.next()){
+				String id = rs.getString("id");
+				String name = rs.getString("name");;
+				String description = rs.getString("description");
+				String effortUnit = rs.getString("effort_unit");
+				BigDecimal hoursPerEffortUnit = rs.getBigDecimal("hours_per_effort_unit");
+				BigDecimal hoursPerWeekAndFullTimeResource = rs.getBigDecimal("hours_per_week_and_full_time_resource");
+				List<Resource> list = new ArrayList<Resource>();
+				
+				Connection con2 = getConnection();
+				Statement stmt2 = con2.createStatement();
+				ResultSet rs2 = stmt2.executeQuery("select * from resources where idProject = " + id);
+				while(rs2.next()){
+					int idR = rs2.getInt("id");
+					String nameR = rs2.getString("name");
+					String descriptionR = rs2.getString("description");
+					
+					Resource resource = new Resource();
+					resource.setId(idR);
+					resource.setName(nameR);
+					resource.setDescription(descriptionR);
+					list.add(resource);
+				}
+				
+				Project project = new Project();
+		        project.setId(id);
+		        project.setName(name);
+		        project.setDescription(description);
+		        project.setEffortUnit(effortUnit);
+		        project.setHoursPerEffortUnit(hoursPerEffortUnit);
+		        project.setHoursPerWeekAndFullTimeResource(hoursPerWeekAndFullTimeResource);
+		        project.setResources(list);
+		        
+		        projects.add(project);
+			}	
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<List<Project>>(projects, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Release> getRelease(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
