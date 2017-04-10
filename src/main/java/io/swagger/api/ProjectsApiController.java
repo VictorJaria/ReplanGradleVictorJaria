@@ -222,13 +222,88 @@ public class ProjectsApiController implements ProjectsApi {
     public ResponseEntity<Feature> getFeature(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the feature",required=true ) @PathVariable("featureId") BigDecimal featureId) {
         // do some magic!
-        return new ResponseEntity<Feature>(HttpStatus.OK);
+    	Connection con = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		
+		Feature feature = new Feature();
+
+		try {
+			con = getConnection();
+			stmt = con.createStatement();
+			rs = stmt.executeQuery("select * from features where idProject = " + projectId + " and id = " + featureId);
+
+			while(rs.next()){
+				int id = rs.getInt("id");
+				int code = rs.getInt("code");
+				String name = rs.getString("name");
+				String description = rs.getString("description");
+				BigDecimal effort = rs.getBigDecimal("effort");
+				Date deadline = rs.getDate("deadline");
+				int priority = rs.getInt("priority");
+				
+				feature.setId(id);
+				feature.setCode(code);
+				feature.setName(name);
+				feature.setDescription(description);
+				feature.setEffort(effort);
+				feature.setDeadline(deadline);
+				feature.setPriority(priority);
+			}
+				
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        
+        HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Feature>(feature, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<List<Feature>> getFeatures(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "any | pending | scheduled", allowableValues = "ANY, PENDING, SCHEDULED") @RequestParam(value = "status", required = false) String status) {
         // do some magic!
-        return new ResponseEntity<List<Feature>>(HttpStatus.OK);
+    	Connection con = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		Integer id;
+		Integer code = null;
+		String name = null;
+		String description = null;
+		BigDecimal effort = null;
+		Date deadline = null;
+		Integer priority = null;
+		List<Feature> list = new ArrayList<Feature>(); 
+		
+		try {
+			con = getConnection();
+			stmt = con.createStatement();
+			rs = stmt.executeQuery("select * from features where idProject = " + projectId);
+			while(rs.next()){
+				id = rs.getInt("id");
+				code = rs.getInt("code");
+				name = rs.getString("name");
+				description = rs.getString("description");
+				effort = rs.getBigDecimal("effort");
+				deadline = rs.getDate("deadline");
+				priority = rs.getInt("priority");
+				
+				Feature feature = new Feature();
+				feature.setId(id);
+				feature.setCode(code);
+				feature.setName(name);
+				feature.setDescription(description);
+				feature.setEffort(effort);
+				feature.setDeadline(deadline);
+				feature.setPriority(priority);
+				
+				list.add(feature);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        
+        HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<List<Feature>>(list, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Project> getProject(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId) {
@@ -263,11 +338,13 @@ public class ProjectsApiController implements ProjectsApi {
 				id = rs.getInt("id");
 				name = rs.getString("name");
 				description = rs.getString("description");
+				int availability = rs.getInt("availability");
 				
 				Resource resource = new Resource();
 				resource.setId(id);
 				resource.setName(name);
 				resource.setDescription(description);
+				resource.setAvailability(availability);
 				list.add(resource);
 			}
 			
@@ -306,11 +383,13 @@ public class ProjectsApiController implements ProjectsApi {
 				id = rs.getInt("id");
 				name = rs.getString("name");
 				description = rs.getString("description");
+				int availability = rs.getInt("availability");
 				
 				Resource resource = new Resource();
 				resource.setId(id);
 				resource.setName(name);
 				resource.setDescription(description);
+				resource.setAvailability(availability);
 				list.add(resource);
 			}
 		} catch (SQLException e) {
@@ -381,11 +460,13 @@ public class ProjectsApiController implements ProjectsApi {
 					int idR = rs2.getInt("id");
 					String nameR = rs2.getString("name");
 					String descriptionR = rs2.getString("description");
+					int availability = rs2.getInt("availability");
 					
 					Resource resource = new Resource();
 					resource.setId(idR);
 					resource.setName(nameR);
 					resource.setDescription(descriptionR);
+					resource.setAvailability(availability);
 					list.add(resource);
 				}
 				

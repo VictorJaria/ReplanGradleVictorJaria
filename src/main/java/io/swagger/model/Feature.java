@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiModelProperty;
 import io.swagger.model.Feature;
 import io.swagger.model.Skill;
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import org.joda.time.DateTime;
@@ -34,7 +35,7 @@ public class Feature   {
   private BigDecimal effort = null;
 
   @JsonProperty("deadline")
-  private DateTime deadline = null;
+  private Date deadline = null;
 
   @JsonProperty("priority")
   private Integer priority = null;
@@ -135,7 +136,7 @@ public class Feature   {
     this.effort = effort;
   }
 
-  public Feature deadline(DateTime deadline) {
+  public Feature deadline(Date deadline) {
     this.deadline = deadline;
     return this;
   }
@@ -145,12 +146,12 @@ public class Feature   {
    * @return deadline
   **/
   @ApiModelProperty(value = "")
-  public DateTime getDeadline() {
+  public Date getDeadline() {
     return deadline;
   }
 
-  public void setDeadline(DateTime deadline) {
-    this.deadline = deadline;
+  public void setDeadline(Date dateline) {
+    this.deadline = dateline;
   }
 
   public Feature priority(Integer priority) {

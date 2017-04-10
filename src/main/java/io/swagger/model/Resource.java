@@ -26,7 +26,7 @@ public class Resource   {
   private String description = null;
 
   @JsonProperty("availability")
-  private BigDecimal availability = null;
+  private Integer availability = null;
 
   @JsonProperty("skills")
   private List<Skill> skills = new ArrayList<Skill>();
@@ -85,7 +85,7 @@ public class Resource   {
     this.description = description;
   }
 
-  public Resource availability(BigDecimal availability) {
+  public Resource availability(int availability) {
     this.availability = availability;
     return this;
   }
@@ -95,12 +95,12 @@ public class Resource   {
    * @return availability
   **/
   @ApiModelProperty(value = "")
-  public BigDecimal getAvailability() {
+  public int getAvailability() {
     return availability;
   }
 
-  public void setAvailability(BigDecimal availability) {
-    this.availability = availability;
+  public void setAvailability(int availability2) {
+    this.availability = availability2;
   }
 
   public Resource skills(List<Skill> skills) {
