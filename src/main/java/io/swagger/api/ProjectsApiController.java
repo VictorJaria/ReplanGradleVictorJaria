@@ -91,6 +91,13 @@ public class ProjectsApiController implements ProjectsApi {
 		}
 		return connection;
 	}
+	
+	public String transformProjectId(String projectId) {		
+		if (projectId.equals("siemens")) return "1"; 
+		else if (projectId.equals("senercon")) return "2";
+		else if (projectId.equals("atos")) return "3";
+		else return projectId;
+	}
 
     public ResponseEntity<Feature> addDependenciesToFeature(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the realese",required=true ) @PathVariable("featureId") BigDecimal featureId,
@@ -222,6 +229,7 @@ public class ProjectsApiController implements ProjectsApi {
     public ResponseEntity<Feature> getFeature(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the feature",required=true ) @PathVariable("featureId") BigDecimal featureId) {
         // do some magic!
+    	projectId = transformProjectId(projectId);
     	Connection con = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -262,6 +270,7 @@ public class ProjectsApiController implements ProjectsApi {
     public ResponseEntity<List<Feature>> getFeatures(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "any | pending | scheduled", allowableValues = "ANY, PENDING, SCHEDULED") @RequestParam(value = "status", required = false) String status) {
         // do some magic!
+    	projectId = transformProjectId(projectId);
     	Connection con = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -308,6 +317,7 @@ public class ProjectsApiController implements ProjectsApi {
 
     public ResponseEntity<Project> getProject(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId) {
         // do some magic!
+    	//projectId = transformProjectId(projectId);
     	Connection con = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -330,24 +340,23 @@ public class ProjectsApiController implements ProjectsApi {
 				effortUnit = rs.getString("effort_unit");
 				hoursPerEffortUnit = rs.getBigDecimal("hours_per_effort_unit");
 				hoursPerWeekAndFullTimeResource = rs.getBigDecimal("hours_per_week_and_full_time_resource");
-			}
-			
-			stmt = con.createStatement();
-			rs = stmt.executeQuery("select * from resources where idProject = " + projectId);
-			while(rs.next()){
-				id = rs.getInt("id");
-				name = rs.getString("name");
-				description = rs.getString("description");
-				int availability = rs.getInt("availability");
 				
-				Resource resource = new Resource();
-				resource.setId(id);
-				resource.setName(name);
-				resource.setDescription(description);
-				resource.setAvailability(availability);
-				list.add(resource);
-			}
-			
+				Statement stmt2 = con.createStatement();
+				ResultSet rs2 = stmt2.executeQuery("select * from resources where idProject = " + projectId);
+				while(rs2.next()){
+					int id2 = rs2.getInt("id");
+					String name2 = rs2.getString("name");
+					String description2 = rs2.getString("description");
+					int availability = rs2.getInt("availability");
+					
+					Resource resource = new Resource();
+					resource.setId(id2);
+					resource.setName(name2);
+					resource.setDescription(description2);
+					resource.setAvailability(availability);
+					list.add(resource);
+				}
+			}	
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -367,6 +376,7 @@ public class ProjectsApiController implements ProjectsApi {
 
     public ResponseEntity<List<Resource>> getProjectResources(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId) {
         // do some magic!
+    	projectId = transformProjectId(projectId);
     	Connection con = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -402,6 +412,7 @@ public class ProjectsApiController implements ProjectsApi {
 
     public ResponseEntity<List<Skill>> getProjectSkills(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId) {
         // do some magic!
+    	projectId = transformProjectId(projectId);
     	Connection con = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -491,6 +502,7 @@ public class ProjectsApiController implements ProjectsApi {
     public ResponseEntity<Release> getRelease(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the release",required=true ) @PathVariable("releaseId") BigDecimal releaseId) {
         // do some magic!
+    	projectId = transformProjectId(projectId);
     	Connection con = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -536,6 +548,7 @@ public class ProjectsApiController implements ProjectsApi {
 
     public ResponseEntity<List<Release>> getReleases(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId) {
         // do some magic!
+    	projectId = transformProjectId(projectId);
     	Connection con = null;
 		Statement stmt = null;
 		ResultSet rs = null;
