@@ -136,15 +136,9 @@ public class ProjectsApiController implements ProjectsApi {
     	
     	projectId = transformProjectId(projectId);
     	Connection con = null;
-		Statement stmt = null;
-		ResultSet rs = null;
-		
 
 		try {
 			con = getConnection();
-			//stmt = con.createStatement();
-			//rs = stmt.executeQuery("INSERT INTO skills (id, idProject, name, description)  VALUES ('" + 
-			//100 + "', '" + projectId + "', '" + "', '" + name + "', '" + description + "');");
 			
 			PreparedStatement statement = con.prepareStatement("INSERT INTO skills (idProject, name, description)  VALUES ('"+ projectId +"','"+ name +"','"+ description + "')");
 			statement.execute();
@@ -194,7 +188,34 @@ public class ProjectsApiController implements ProjectsApi {
 
     public ResponseEntity<Project> createProject(@ApiParam(value = "Project parameters" ,required=true ) @RequestBody NewProjectData body) {
         // do some magic!
-        return new ResponseEntity<Project>(HttpStatus.OK);
+    	System.out.println("CUERPO SKILL: " + body);
+    	String name = body.getName();
+    	String description = body.getDescription();
+    	String effortUnit = body.getEffortUnit();
+    	BigDecimal hoursPerEffortUnit = body.getHoursPerEffortUnit();
+    	BigDecimal hoursPerWeekAndFullTimeResource = body.getHoursPerWeekAndFullTimeResource(); 
+    	
+    	Project project = new Project();
+    	
+    	Connection con = null;
+		
+		try {
+			con = getConnection();
+			
+			PreparedStatement statement = con.prepareStatement("INSERT INTO projects (name, description, effort_unit, hours_per_effort_unit, hours_per_week_and_full_time_resource)  VALUES ('"+ name +"','"+ description + "','"+ effortUnit + "','"+ hoursPerEffortUnit + "','"+ hoursPerWeekAndFullTimeResource + "')");
+			statement.execute();
+			
+			project.setName(name);
+			project.setDescription(description);
+			project.setEffortUnit(effortUnit);
+			project.setHoursPerEffortUnit(hoursPerEffortUnit);
+			project.setHoursPerWeekAndFullTimeResource(hoursPerWeekAndFullTimeResource);
+				
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Project>(project, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Feature> deleteDependenciesFromFeature(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
