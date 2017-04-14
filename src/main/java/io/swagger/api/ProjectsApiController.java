@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -128,7 +129,34 @@ public class ProjectsApiController implements ProjectsApi {
     public ResponseEntity<Skill> addNewSkillToProject(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "Skill parameters" ,required=true ) @RequestBody SkillData body) {
         // do some magic!
-        return new ResponseEntity<Skill>(HttpStatus.OK);
+    	System.out.println("CUERPO SKILL: " + body);
+    	String name = body.getName();
+    	String description = body.getDescription();
+    	Skill skill = new Skill();
+    	
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		
+
+		try {
+			con = getConnection();
+			//stmt = con.createStatement();
+			//rs = stmt.executeQuery("INSERT INTO skills (id, idProject, name, description)  VALUES ('" + 
+			//100 + "', '" + projectId + "', '" + "', '" + name + "', '" + description + "');");
+			
+			PreparedStatement statement = con.prepareStatement("INSERT INTO skills (idProject, name, description)  VALUES ('"+ projectId +"','"+ name +"','"+ description + "')");
+			statement.execute();
+			skill.setId(100);
+			skill.setName(name);
+			skill.setDescription(description);
+				
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Skill>(skill, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Release> addResourcesToRelease(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
@@ -321,7 +349,7 @@ public class ProjectsApiController implements ProjectsApi {
     	Connection con = null;
 		Statement stmt = null;
 		ResultSet rs = null;
-		int id;
+		Integer id;
 		String name = null;
 		String description = null;
 		String effortUnit = null;
@@ -344,7 +372,7 @@ public class ProjectsApiController implements ProjectsApi {
 				Statement stmt2 = con.createStatement();
 				ResultSet rs2 = stmt2.executeQuery("select * from resources where idProject = " + projectId);
 				while(rs2.next()){
-					int id2 = rs2.getInt("id");
+					Integer id2 = rs2.getInt("id");
 					String name2 = rs2.getString("name");
 					String description2 = rs2.getString("description");
 					int availability = rs2.getInt("availability");
