@@ -117,19 +117,64 @@ public class ProjectsApiController implements ProjectsApi {
     public ResponseEntity<Release> addNewReleaseToProject(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "Parameters of the new Release" ,required=true ) @RequestBody NewRelease body) {
         // do some magic!
-        return new ResponseEntity<Release>(HttpStatus.OK);
+    	String name = body.getName();
+    	String description = body.getDescription();
+    	DateTime startsAt = body.getStartsAt();
+    	DateTime deadline = body.getDeadline();
+    	Release release = new Release();
+    	
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+
+		try {
+			con = getConnection();
+			
+			PreparedStatement statement = con.prepareStatement("INSERT INTO releases (idProject, name, description, starts_at, deadline)  VALUES ('"+ projectId +"','"+ name +"','"+ description + "','"+ startsAt + "','" + deadline +"')");
+			statement.execute();
+			release.setId(100); //COMENTAR PROFE QUE ID SACAR
+			release.setName(name);
+			release.setDescription(description);
+			//release.startsAt(startsAt);
+			//release.deadline(deadline);
+				
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Release>(release, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Resource> addNewResourceToProject(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "Resource parameters" ,required=true ) @RequestBody ResourceData body) {
         // do some magic!
-        return new ResponseEntity<Resource>(HttpStatus.OK);
+    	String name = body.getName();
+    	String description = body.getDescription();
+    	BigDecimal availability = body.getAvailability();
+    	Resource resource = new Resource();
+    	
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+
+		try {
+			con = getConnection();
+			
+			PreparedStatement statement = con.prepareStatement("INSERT INTO resources (idProject, name, description)  VALUES ('"+ projectId +"','"+ name +"','"+ description + "','"+ availability + "')");
+			statement.execute();
+			resource.setId(100);
+			resource.setName(name);
+			resource.setDescription(description);
+			//resource.setAvailability(availability); COMENTAR PROFES
+				
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Resource>(resource, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Skill> addNewSkillToProject(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "Skill parameters" ,required=true ) @RequestBody SkillData body) {
         // do some magic!
-    	System.out.println("CUERPO SKILL: " + body);
     	String name = body.getName();
     	String description = body.getDescription();
     	Skill skill = new Skill();
@@ -183,12 +228,37 @@ public class ProjectsApiController implements ProjectsApi {
     public ResponseEntity<Feature> createFeature(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "Project parameters" ,required=true ) @RequestBody NewFeatureData body) {
         // do some magic!
-        return new ResponseEntity<Feature>(HttpStatus.OK);
+    	Integer code = body.getCode();
+    	String name = body.getName();
+    	String description = body.getDescription();
+    	BigDecimal effort = body.getEffort();
+    	DateTime deadline = body.getDeadline();
+    	Integer priority = body.getPriority();
+    	
+    	projectId = transformProjectId(projectId);
+    	Feature feature = new Feature();
+    	Connection con = null;
+		try {
+			con = getConnection();
+			PreparedStatement statement = con.prepareStatement("INSERT INTO features (idProject, code, name, description, effort, deadline, priority)  VALUES ('"+ projectId +"','"+ code +"','"+ name +"','"+ description + "','"+ effort + "','"+ deadline + "','"+ priority + "')");
+			statement.execute();
+			
+			feature.setCode(code);
+			feature.setName(name);
+			feature.setDescription(description);
+			feature.setEffort(effort);
+			//feature.setDeadline(deadline); //COMENTAR PROFES
+			feature.setPriority(priority);
+				
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Feature>(feature, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Project> createProject(@ApiParam(value = "Project parameters" ,required=true ) @RequestBody NewProjectData body) {
         // do some magic!
-    	System.out.println("CUERPO SKILL: " + body);
     	String name = body.getName();
     	String description = body.getDescription();
     	String effortUnit = body.getEffortUnit();
@@ -228,23 +298,67 @@ public class ProjectsApiController implements ProjectsApi {
     public ResponseEntity<Void> deleteFeature(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the feature",required=true ) @PathVariable("featureId") BigDecimal featureId) {
         // do some magic!
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+		
+		try {
+			con = getConnection();
+			PreparedStatement statement = con.prepareStatement("DELETE FROM features WHERE idProject = " + projectId + " AND id = " + featureId);
+			statement.execute();
+				
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
     public ResponseEntity<Void> deleteProject(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId) {
         // do some magic!
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+		
+		try {
+			con = getConnection();
+			PreparedStatement statement = con.prepareStatement("DELETE FROM projects WHERE id = " + projectId);
+			statement.execute();
+				
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
     public ResponseEntity<Void> deleteRelease(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the project",required=true ) @PathVariable("releaseId") BigDecimal releaseId) {
         // do some magic!
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+		
+		try {
+			con = getConnection();
+			PreparedStatement statement = con.prepareStatement("DELETE FROM releases WHERE idProject = " + projectId + " AND id = " + releaseId);
+			statement.execute();
+				
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
     public ResponseEntity<Void> deleteResource(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the resource",required=true ) @PathVariable("resourceId") BigDecimal resourceId) {
         // do some magic!
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+		
+		try {
+			con = getConnection();
+			PreparedStatement statement = con.prepareStatement("DELETE FROM resources WHERE idProject = " + projectId + " AND id = " + resourceId);
+			statement.execute();
+				
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
@@ -258,6 +372,17 @@ public class ProjectsApiController implements ProjectsApi {
     public ResponseEntity<Void> deleteSkill(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the project",required=true ) @PathVariable("skillId") BigDecimal skillId) {
         // do some magic!
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+		
+		try {
+			con = getConnection();
+			PreparedStatement statement = con.prepareStatement("DELETE FROM skills WHERE idProject = " + projectId + " AND id = " + skillId);
+			statement.execute();
+				
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
@@ -282,7 +407,6 @@ public class ProjectsApiController implements ProjectsApi {
     	Connection con = null;
 		Statement stmt = null;
 		ResultSet rs = null;
-		
 		Feature feature = new Feature();
 
 		try {
@@ -366,7 +490,7 @@ public class ProjectsApiController implements ProjectsApi {
 
     public ResponseEntity<Project> getProject(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId) {
         // do some magic!
-    	//projectId = transformProjectId(projectId);
+    	projectId = transformProjectId(projectId);
     	Connection con = null;
 		Statement stmt = null;
 		ResultSet rs = null;
