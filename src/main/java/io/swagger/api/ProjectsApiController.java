@@ -306,12 +306,12 @@ public class ProjectsApiController implements ProjectsApi {
 				Integer id = rs.getInt("id");
 				String name = rs.getString("name");
 				String description = rs.getString("description");
-				//Integer availability = rs.getInt("availability");
+				Integer availability = rs.getInt("availability");
 				
 				resource.setId(id);
 				resource.setName(name);
 				resource.setDescription(description);
-				//resource.setAvailability(availability);
+				resource.setAvailability(availability);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -467,7 +467,39 @@ public class ProjectsApiController implements ProjectsApi {
         @ApiParam(value = "ID of the realese",required=true ) @PathVariable("releaseId") BigDecimal releaseId,
         @ApiParam(value = "IDs of the resources to remove", required = true) @RequestParam(value = "resourceId", required = true) List<BigDecimal> resourceId) {
         // do some magic!
-        return new ResponseEntity<Release>(HttpStatus.OK);
+    	projectId = transformProjectId(projectId);
+    	Release release = new Release();
+    	Connection con = null;
+		try {
+			con = getConnection();
+			
+			for (int i = 0; i < resourceId.size(); ++i) {
+				BigDecimal r = resourceId.get(i);
+				PreparedStatement statement = con.prepareStatement("DELETE FROM releaseResource WHERE id_release =  "+ releaseId + " and id_resource = "+ r);
+				statement.execute();
+			}
+			
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from releases where idProject = " + projectId + " and id = " + releaseId);
+
+			while(rs.next()){
+				Integer id = rs.getInt("id");
+				String name = rs.getString("name");
+				String description = rs.getString("description");
+				Date starts_at = rs.getDate("starts_at");
+				Date deadline = rs.getDate("deadline");
+				
+				release.setId(id);
+				release.setName(name);
+				release.setDescription(description);
+				release.setStartsAt(starts_at);
+				release.setDeadline(deadline);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Release>(release, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Void> deleteSkill(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
@@ -491,14 +523,80 @@ public class ProjectsApiController implements ProjectsApi {
         @ApiParam(value = "ID of the realese",required=true ) @PathVariable("featureId") BigDecimal featureId,
         @ApiParam(value = "IDs of the skills to remove", required = true) @RequestParam(value = "skillId", required = true) List<BigDecimal> skillId) {
         // do some magic!
-        return new ResponseEntity<Feature>(HttpStatus.OK);
+    	projectId = transformProjectId(projectId);
+    	Feature feature = new Feature();
+    	Connection con = null;
+		try {
+			con = getConnection();
+			
+			for (int i = 0; i < skillId.size(); ++i) {
+				BigDecimal s = skillId.get(i);
+				PreparedStatement statement = con.prepareStatement("DELETE FROM featureSkill WHERE id_feature =  "+ featureId + " and id_skill = "+ s);
+				statement.execute();
+			}
+			
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from features where idProject = " + projectId + " and id = " + featureId);
+
+			while (rs.next()){
+				int id = rs.getInt("id");
+				int code = rs.getInt("code");
+				String name = rs.getString("name");
+				String description = rs.getString("description");
+				BigDecimal effort = rs.getBigDecimal("effort");
+				Date deadline = rs.getDate("deadline");
+				int priority = rs.getInt("priority");
+				
+				feature.setId(id);
+				feature.setCode(code);
+				feature.setName(name);
+				feature.setDescription(description);
+				feature.setEffort(effort);
+				feature.setDeadline(deadline);
+				feature.setPriority(priority);
+			}	
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Feature>(feature, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Resource> deleteSkillsFromResource(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the resource",required=true ) @PathVariable("resourceId") BigDecimal resourceId,
         @ApiParam(value = "IDs of the skills to remove", required = true) @RequestParam(value = "skillId", required = true) List<BigDecimal> skillId) {
         // do some magic!
-        return new ResponseEntity<Resource>(HttpStatus.OK);
+    	projectId = transformProjectId(projectId);
+    	Resource resource = new Resource();
+    	Connection con = null;
+		try {
+			con = getConnection();
+			
+			for (int i = 0; i < skillId.size(); ++i) {
+				BigDecimal s = skillId.get(i);
+				PreparedStatement statement = con.prepareStatement("DELETE FROM resourceSkill WHERE id_resource =  "+ resourceId + " and id_skill = "+ s);
+				statement.execute();
+			}
+			
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from resources where idProject = " + projectId + " and id = " + resourceId);
+
+			while(rs.next()){
+				Integer id = rs.getInt("id");
+				String name = rs.getString("name");
+				String description = rs.getString("description");
+				Integer availability = rs.getInt("availability");
+				
+				resource.setId(id);
+				resource.setName(name);
+				resource.setDescription(description);
+				resource.setAvailability(availability);
+			}	
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Resource>(resource, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Feature> getFeature(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
