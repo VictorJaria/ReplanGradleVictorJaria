@@ -964,12 +964,16 @@ public class ProjectsApiController implements ProjectsApi {
         @ApiParam(value = "ID of the feature",required=true ) @PathVariable("featureId") BigDecimal featureId,
         @ApiParam(value = "Feature parameters that can be modified" ,required=true ) @RequestBody FeatureData body) {
         // do some magic!
+    	
         return new ResponseEntity<Feature>(HttpStatus.OK);
     }
 
     public ResponseEntity<Project> modifyProject(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "Project's parameters that can be modified" ,required=true ) @RequestBody ProjectData body) {
         // do some magic!
+    	body.getEffortUnit();
+    	body.getHoursPerEffortUnit();
+    	body.getHoursPerWeekAndFullTimeResource();
         return new ResponseEntity<Project>(HttpStatus.OK);
     }
 
@@ -977,6 +981,10 @@ public class ProjectsApiController implements ProjectsApi {
         @ApiParam(value = "ID of the project",required=true ) @PathVariable("releaseId") BigDecimal releaseId,
         @ApiParam(value = "Release parameters that can be modified" ,required=true ) @RequestBody ReleaseData body) {
         // do some magic!
+    	body.getName();
+    	body.getDescription();
+    	body.getDeadline();
+    	body.getStartsAt();
         return new ResponseEntity<Release>(HttpStatus.OK);
     }
 
@@ -984,6 +992,9 @@ public class ProjectsApiController implements ProjectsApi {
         @ApiParam(value = "ID of the resource",required=true ) @PathVariable("resourceId") BigDecimal resourceId,
         @ApiParam(value = "Resource parameters that can be modified" ,required=true ) @RequestBody ResourceData body) {
         // do some magic!
+    	body.getName();
+    	body.getDescription();
+    	body.getAvailability();
         return new ResponseEntity<Resource>(HttpStatus.OK);
     }
 
@@ -991,6 +1002,31 @@ public class ProjectsApiController implements ProjectsApi {
         @ApiParam(value = "ID of the project",required=true ) @PathVariable("skillId") BigDecimal skillId,
         @ApiParam(value = "Skill parameters that can be modified" ,required=true ) @RequestBody SkillData body) {
         // do some magic!
+    	//UPDATE table SET `name`='Javaa' WHERE `id`='1';
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+    	Boolean first = true;
+		
+		try {
+			String query = "UPDATE skills SET ";
+			
+			if (body.getName() != null) {
+				query += "name = '" + body.getName() + "'";
+				first = false;
+			}
+			if (body.getDescription() != null) {
+				if (first) query += "description = '" + body.getDescription() + "'";
+				else query += ", " + "description = '" + body.getDescription() + "'";
+				first = false;
+			}
+			query += " WHERE id = " + skillId + " AND idProject = " + projectId;  
+			System.out.println("QUERY: " + query);
+			con = getConnection();
+			PreparedStatement statement = con.prepareStatement(query);
+			statement.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}	
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
