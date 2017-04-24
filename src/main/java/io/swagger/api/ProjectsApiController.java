@@ -187,7 +187,7 @@ public class ProjectsApiController implements ProjectsApi {
 			
 			PreparedStatement statement = con.prepareStatement("INSERT INTO skills (idProject, name, description)  VALUES ('"+ projectId +"','"+ name +"','"+ description + "')");
 			statement.execute();
-			skill.setId(100);
+			//skill.setId(100);
 			skill.setName(name);
 			skill.setDescription(description);
 				
@@ -202,21 +202,122 @@ public class ProjectsApiController implements ProjectsApi {
         @ApiParam(value = "ID of the realese",required=true ) @PathVariable("releaseId") BigDecimal releaseId,
         @ApiParam(value = "Array of Resource ids" ,required=true ) @RequestBody List<ResourceId> body) {
         // do some magic!
-        return new ResponseEntity<Release>(HttpStatus.OK);
+    	projectId = transformProjectId(projectId);
+    	Release release = new Release();
+    	Connection con = null;
+		try {
+			con = getConnection();
+			
+			for (int i = 0; i < body.size(); ++i) {
+				ResourceId r = body.get(i);
+				Integer resourceId = r.getResourceId();
+				PreparedStatement statement = con.prepareStatement("INSERT INTO releaseResource (id_release, id_resource)  VALUES ('"+ releaseId + "','"+ resourceId + "')");
+				statement.execute();
+			}
+			
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from releases where idProject = " + projectId + " and id = " + releaseId);
+			
+			while(rs.next()){
+				Integer id = rs.getInt("id");
+				String name = rs.getString("name");
+				String description = rs.getString("description");
+				Date starts_at = rs.getDate("starts_at");
+				Date deadline = rs.getDate("deadline");
+				
+				release.setId(id);
+				release.setName(name);
+				release.setDescription(description);
+				release.setStartsAt(starts_at);
+				release.setDeadline(deadline);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Release>(release, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Feature> addSkillsToFeature(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the realese",required=true ) @PathVariable("featureId") BigDecimal featureId,
         @ApiParam(value = "Array of Skill ids" ,required=true ) @RequestBody List<SkillId> body) {
         // do some magic!
-        return new ResponseEntity<Feature>(HttpStatus.OK);
+    	projectId = transformProjectId(projectId);
+    	Feature feature = new Feature();
+    	Connection con = null;
+		try {
+			con = getConnection();
+			
+			for (int i = 0; i < body.size(); ++i) {
+				SkillId s = body.get(i);
+				Integer skillId = s.getSkillId();
+				PreparedStatement statement = con.prepareStatement("INSERT INTO featureSkill (id_feature, id_skill)  VALUES ('"+ featureId + "','"+ skillId + "')");
+				statement.execute();
+			}
+			
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from features where idProject = " + projectId + " and id = " + featureId);
+
+			while (rs.next()){
+				int id = rs.getInt("id");
+				int code = rs.getInt("code");
+				String name = rs.getString("name");
+				String description = rs.getString("description");
+				BigDecimal effort = rs.getBigDecimal("effort");
+				Date deadline = rs.getDate("deadline");
+				int priority = rs.getInt("priority");
+				
+				feature.setId(id);
+				feature.setCode(code);
+				feature.setName(name);
+				feature.setDescription(description);
+				feature.setEffort(effort);
+				feature.setDeadline(deadline);
+				feature.setPriority(priority);
+			}	
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Feature>(feature, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Resource> addSkillsToResource(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the resource",required=true ) @PathVariable("resourceId") BigDecimal resourceId,
         @ApiParam(value = "Array of Skill ids" ,required=true ) @RequestBody List<SkillId> body) {
         // do some magic!
-        return new ResponseEntity<Resource>(HttpStatus.OK);
+    	projectId = transformProjectId(projectId);
+    	Resource resource = new Resource();
+    	Connection con = null;
+		try {
+			con = getConnection();
+			
+			for (int i = 0; i < body.size(); ++i) {
+				SkillId s = body.get(i);
+				Integer skillId = s.getSkillId();
+				PreparedStatement statement = con.prepareStatement("INSERT INTO resourceSkill (id_resource, id_skill)  VALUES ('"+ resourceId + "','"+ skillId + "')");
+				statement.execute();
+			}
+			
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from resource where idProject = " + projectId + " and id = " + resourceId);
+
+			while(rs.next()){
+				Integer id = rs.getInt("id");
+				String name = rs.getString("name");
+				String description = rs.getString("description");
+				//Integer availability = rs.getInt("availability");
+				
+				resource.setId(id);
+				resource.setName(name);
+				resource.setDescription(description);
+				//resource.setAvailability(availability);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Resource>(resource, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Void> cancelLastReleasePlan(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
