@@ -461,7 +461,7 @@ public interface ProjectsApi {
     @RequestMapping(value = "/projects/{projectId}/skills/{skillId}",
         produces = { "application/json" }, 
         method = RequestMethod.PUT)
-    ResponseEntity<Void> modifySkill(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
+    ResponseEntity<Skill> modifySkill(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the project",required=true ) @PathVariable("skillId") BigDecimal skillId,
         @ApiParam(value = "Skill parameters that can be modified" ,required=true ) @RequestBody SkillData body);
 

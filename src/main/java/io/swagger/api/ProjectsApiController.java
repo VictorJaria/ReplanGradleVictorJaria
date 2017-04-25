@@ -967,6 +967,7 @@ public class ProjectsApiController implements ProjectsApi {
     	projectId = transformProjectId(projectId);
     	Connection con = null;
     	Boolean first = true;
+    	Feature feature = new Feature();
 		
 		try {
 			String query = "UPDATE features SET ";
@@ -1000,10 +1001,33 @@ public class ProjectsApiController implements ProjectsApi {
 			con = getConnection();
 			PreparedStatement statement = con.prepareStatement(query);
 			statement.execute();
+			
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from features where idProject = " + projectId + " AND id = " + featureId);
+			
+			while(rs.next()){
+				int id = rs.getInt("id");
+				int code = rs.getInt("code");
+				String name = rs.getString("name");
+				String description = rs.getString("description");
+				BigDecimal effort = rs.getBigDecimal("effort");
+				Date deadline = rs.getDate("deadline");
+				int priority = rs.getInt("priority");
+				
+				feature.setId(id);
+				feature.setCode(code);
+				feature.setName(name);
+				feature.setDescription(description);
+				feature.setEffort(effort);
+				feature.setDeadline(deadline);
+				feature.setPriority(priority);
+			}
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-        return new ResponseEntity<Feature>(HttpStatus.OK);
+		HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Feature>(feature, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Project> modifyProject(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
@@ -1015,6 +1039,8 @@ public class ProjectsApiController implements ProjectsApi {
     	projectId = transformProjectId(projectId);
     	Connection con = null;
     	Boolean first = true;
+    	
+    	Project project = new Project();
 		
 		try {
 			String query = "UPDATE projects SET ";
@@ -1038,11 +1064,31 @@ public class ProjectsApiController implements ProjectsApi {
 			con = getConnection();
 			PreparedStatement statement = con.prepareStatement(query);
 			statement.execute();
+			
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from projects where id = " + projectId);
+			
+			while(rs.next()){
+				Integer id = rs.getInt("id");
+				String name = rs.getString("name");
+				String description = rs.getString("description");
+				String effortUnit = rs.getString("effort_unit");
+				BigDecimal hoursPerEffortUnit = rs.getBigDecimal("hours_per_effort_unit");
+				BigDecimal hoursPerWeekAndFullTimeResource = rs.getBigDecimal("hours_per_week_and_full_time_resource");
+				
+				project.setId(projectId);
+		        project.setName(name);
+		        project.setDescription(description);
+		        project.setEffortUnit(effortUnit);
+		        project.setHoursPerEffortUnit(hoursPerEffortUnit);
+		        project.setHoursPerWeekAndFullTimeResource(hoursPerWeekAndFullTimeResource);
+			}
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-    	
-        return new ResponseEntity<Project>(HttpStatus.OK);
+		HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Project>(project, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Release> modifyRelease(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
@@ -1056,6 +1102,7 @@ public class ProjectsApiController implements ProjectsApi {
     	projectId = transformProjectId(projectId);
     	Connection con = null;
     	Boolean first = true;
+    	Release release = new Release();
 		
 		try {
 			String query = "UPDATE releases SET ";
@@ -1084,10 +1131,29 @@ public class ProjectsApiController implements ProjectsApi {
 			con = getConnection();
 			PreparedStatement statement = con.prepareStatement(query);
 			statement.execute();
+			
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from releases where idProject = " + projectId + " AND id = " + releaseId);
+			
+			while(rs.next()){
+				Integer id = rs.getInt("id");
+				String name = rs.getString("name");
+				String description = rs.getString("description");
+				Date starts_at = rs.getDate("starts_at");
+				Date deadline = rs.getDate("deadline");
+				
+				release.setId(id);
+				release.setName(name);
+				release.setDescription(description);
+				release.setStartsAt(starts_at);
+				release.setDeadline(deadline);
+			}
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-        return new ResponseEntity<Release>(HttpStatus.OK);
+		HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Release>(release, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Resource> modifyResource(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
@@ -1097,6 +1163,7 @@ public class ProjectsApiController implements ProjectsApi {
     	projectId = transformProjectId(projectId);
     	Connection con = null;
     	Boolean first = true;
+    	Resource resource = new Resource();
 		
 		try {
 			String query = "UPDATE resources SET ";
@@ -1120,13 +1187,30 @@ public class ProjectsApiController implements ProjectsApi {
 			con = getConnection();
 			PreparedStatement statement = con.prepareStatement(query);
 			statement.execute();
+			
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from resources where idProject = " + projectId + " AND id = " + resourceId);
+			
+			while(rs.next()){
+				Integer id = rs.getInt("id");
+				String description = rs.getString("description");
+				String name = rs.getString("name");
+				Integer availability = rs.getInt("availability");
+				
+				resource.setId(id);
+				resource.setDescription(description);
+				resource.setName(name);
+				resource.setAvailability(availability);
+			}
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-        return new ResponseEntity<Resource>(HttpStatus.OK);
+		HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Resource>(resource, responseHeaders, HttpStatus.OK);
     }
 
-    public ResponseEntity<Void> modifySkill(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
+    public ResponseEntity<Skill> modifySkill(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the project",required=true ) @PathVariable("skillId") BigDecimal skillId,
         @ApiParam(value = "Skill parameters that can be modified" ,required=true ) @RequestBody SkillData body) {
         // do some magic!
@@ -1134,7 +1218,8 @@ public class ProjectsApiController implements ProjectsApi {
     	projectId = transformProjectId(projectId);
     	Connection con = null;
     	Boolean first = true;
-		
+    	Skill skill = new Skill();
+    	
 		try {
 			String query = "UPDATE skills SET ";
 			
@@ -1152,10 +1237,25 @@ public class ProjectsApiController implements ProjectsApi {
 			con = getConnection();
 			PreparedStatement statement = con.prepareStatement(query);
 			statement.execute();
+			
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from skills where idProject = " + projectId + " AND id = " + skillId);
+			
+			while(rs.next()){
+				Integer id = rs.getInt("id");
+				String name = rs.getString("name");
+				String description = rs.getString("description");
+				
+				skill.setId(id);
+				skill.setName(name);
+				skill.setDescription(description);
+			}
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}	
-        return new ResponseEntity<Void>(HttpStatus.OK);
+		HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Skill>(skill, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Void> removeFeaturesFromRelease(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
