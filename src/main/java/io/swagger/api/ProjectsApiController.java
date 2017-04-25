@@ -963,8 +963,46 @@ public class ProjectsApiController implements ProjectsApi {
     public ResponseEntity<Feature> modifyFeature(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the feature",required=true ) @PathVariable("featureId") BigDecimal featureId,
         @ApiParam(value = "Feature parameters that can be modified" ,required=true ) @RequestBody FeatureData body) {
-        // do some magic!
-    	
+        // do some magic!    	
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+    	Boolean first = true;
+		
+		try {
+			String query = "UPDATE features SET ";
+			
+			if (body.getName() != null) {
+				query += "name = '" + body.getName() + "'";
+				first = false;
+			}
+			if (body.getDescription() != null) {
+				if (first) query += "description = '" + body.getDescription() + "'";
+				else query += ", " + "description = '" + body.getDescription() + "'";
+				first = false;
+			}
+			if (body.getDeadline() != null) {
+				if (first) query += "deadline = '" + body.getDeadline() + "'";
+				else query += ", " + "deadline = '" + body.getDeadline() + "'";
+				first = false;
+			}
+			if (body.getEffort() != null) {
+				if (first) query += "effort = " + body.getEffort();
+				else query += ", " + "effort = " + body.getEffort();
+				first = false;
+			}
+			if (body.getPriority() != null) {
+				if (first) query += "priority = " + body.getPriority();
+				else query += ", " + "priority = " + body.getPriority();
+				first = false;
+			}
+			query += " WHERE id = " + featureId + " AND idProject = " + projectId;  
+			System.out.println("QUERY: " + query);
+			con = getConnection();
+			PreparedStatement statement = con.prepareStatement(query);
+			statement.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
         return new ResponseEntity<Feature>(HttpStatus.OK);
     }
 
@@ -974,6 +1012,36 @@ public class ProjectsApiController implements ProjectsApi {
     	body.getEffortUnit();
     	body.getHoursPerEffortUnit();
     	body.getHoursPerWeekAndFullTimeResource();
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+    	Boolean first = true;
+		
+		try {
+			String query = "UPDATE projects SET ";
+			
+			if (body.getEffortUnit() != null) {
+				query += "effort_unit = '" + body.getEffortUnit() + "'";
+				first = false;
+			}
+			if (body.getHoursPerEffortUnit() != null) {
+				if (first) query += "hours_per_effort_unit = " + body.getHoursPerEffortUnit();
+				else query += ", " + "hours_per_effort_unit = " + body.getHoursPerEffortUnit();
+				first = false;
+			}
+			if (body.getHoursPerWeekAndFullTimeResource() != null) {
+				if (first) query += "hours_per_week_and_full_time_resource = " + body.getHoursPerWeekAndFullTimeResource();
+				else query += ", " + "hours_per_week_and_full_time_resource = " + body.getHoursPerWeekAndFullTimeResource();
+				first = false;
+			}
+			query += " WHERE id = " + projectId;  
+			System.out.println("QUERY: " + query);
+			con = getConnection();
+			PreparedStatement statement = con.prepareStatement(query);
+			statement.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+    	
         return new ResponseEntity<Project>(HttpStatus.OK);
     }
 
@@ -985,6 +1053,40 @@ public class ProjectsApiController implements ProjectsApi {
     	body.getDescription();
     	body.getDeadline();
     	body.getStartsAt();
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+    	Boolean first = true;
+		
+		try {
+			String query = "UPDATE releases SET ";
+			
+			if (body.getName() != null) {
+				query += "name = '" + body.getName() + "'";
+				first = false;
+			}
+			if (body.getDescription() != null) {
+				if (first) query += "description = '" + body.getDescription() + "'";
+				else query += ", " + "description = '" + body.getDescription() + "'";
+				first = false;
+			}
+			if (body.getDeadline() != null) {
+				if (first) query += "deadline = '" + body.getDeadline() + "'";
+				else query += ", " + "deadline = '" + body.getDeadline() + "'";
+				first = false;
+			}
+			if (body.getStartsAt() != null) {
+				if (first) query += "starts_at = '" + body.getStartsAt() + "'";
+				else query += ", " + "starts_at = '" + body.getStartsAt() + "'";
+				first = false;
+			}
+			query += " WHERE id = " + releaseId + " AND idProject = " + projectId;  
+			System.out.println("QUERY: " + query);
+			con = getConnection();
+			PreparedStatement statement = con.prepareStatement(query);
+			statement.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
         return new ResponseEntity<Release>(HttpStatus.OK);
     }
 
@@ -992,9 +1094,35 @@ public class ProjectsApiController implements ProjectsApi {
         @ApiParam(value = "ID of the resource",required=true ) @PathVariable("resourceId") BigDecimal resourceId,
         @ApiParam(value = "Resource parameters that can be modified" ,required=true ) @RequestBody ResourceData body) {
         // do some magic!
-    	body.getName();
-    	body.getDescription();
-    	body.getAvailability();
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+    	Boolean first = true;
+		
+		try {
+			String query = "UPDATE resources SET ";
+			
+			if (body.getName() != null) {
+				query += "name = '" + body.getName() + "'";
+				first = false;
+			}
+			if (body.getDescription() != null) {
+				if (first) query += "description = '" + body.getDescription() + "'";
+				else query += ", " + "description = '" + body.getDescription() + "'";
+				first = false;
+			}
+			if (body.getAvailability() != null) {
+				if (first) query += "availability = " + body.getAvailability();
+				else query += ", " + "availability = " + body.getAvailability();
+				first = false;
+			}
+			query += " WHERE id = " + resourceId + " AND idProject = " + projectId;  
+			System.out.println("QUERY: " + query);
+			con = getConnection();
+			PreparedStatement statement = con.prepareStatement(query);
+			statement.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
         return new ResponseEntity<Resource>(HttpStatus.OK);
     }
 
