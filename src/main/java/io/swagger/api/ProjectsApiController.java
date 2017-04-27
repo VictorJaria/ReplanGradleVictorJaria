@@ -111,7 +111,26 @@ public class ProjectsApiController implements ProjectsApi {
         @ApiParam(value = "ID of the realese",required=true ) @PathVariable("releaseId") BigDecimal releaseId,
         @ApiParam(value = "Array of Feature ids" ,required=true ) @RequestBody List<FeatureId> body) {
         // do some magic!
-        return new ResponseEntity<Void>(HttpStatus.OK);
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+    	
+		try {
+			con = getConnection();
+			
+			for (int i = 0; i < body.size(); ++i) {
+				FeatureId f = body.get(i);
+				Integer featureId = f.getFeatureId();
+				String query = "UPDATE features SET id_release = " + releaseId + " WHERE id = " + featureId +  " AND idProject = " + projectId;
+				//System.out.println("QUERY: " + query);
+				PreparedStatement statement = con.prepareStatement(query);
+				statement.execute();
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        HttpHeaders responseHeaders = new HttpHeaders();    
+        return new ResponseEntity<Void>(HttpStatus.OK); //COMENTAR PROFES
     }
 
     public ResponseEntity<Release> addNewReleaseToProject(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
@@ -909,7 +928,49 @@ public class ProjectsApiController implements ProjectsApi {
     public ResponseEntity<List<Feature>> getReleaseFeatures(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the realese",required=true ) @PathVariable("releaseId") BigDecimal releaseId) {
         // do some magic!
-        return new ResponseEntity<List<Feature>>(HttpStatus.OK);
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		Integer id;
+		Integer code = null;
+		String name = null;
+		String description = null;
+		BigDecimal effort = null;
+		Date deadline = null;
+		Integer priority = null;
+		List<Feature> list = new ArrayList<Feature>(); 
+		
+		try {
+			con = getConnection();
+			stmt = con.createStatement();
+			rs = stmt.executeQuery("select * from features where idProject = " + projectId + " and id_release = " + releaseId);
+			while(rs.next()){
+				id = rs.getInt("id");
+				code = rs.getInt("code");
+				name = rs.getString("name");
+				description = rs.getString("description");
+				effort = rs.getBigDecimal("effort");
+				deadline = rs.getDate("deadline");
+				priority = rs.getInt("priority");
+				
+				Feature feature = new Feature();
+				feature.setId(id);
+				feature.setCode(code);
+				feature.setName(name);
+				feature.setDescription(description);
+				feature.setEffort(effort);
+				feature.setDeadline(deadline);
+				feature.setPriority(priority);
+				
+				list.add(feature);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        
+        HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<List<Feature>>(list, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Plan> getReleasePlan(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
@@ -1262,7 +1323,25 @@ public class ProjectsApiController implements ProjectsApi {
         @ApiParam(value = "ID of the realese",required=true ) @PathVariable("releaseId") BigDecimal releaseId,
         @ApiParam(value = "IDs of the features to remove", required = true) @RequestParam(value = "featureId", required = true) List<BigDecimal> featureId) {
         // do some magic!
-        return new ResponseEntity<Void>(HttpStatus.OK);
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+    	
+		try {
+			con = getConnection();
+			
+			for (int i = 0; i < featureId.size(); ++i) {
+				BigDecimal f = featureId.get(i);
+				String query = "UPDATE features SET id_release = NULL WHERE id = " + f +  " AND idProject = " + projectId;
+				//System.out.println("QUERY: " + query);
+				PreparedStatement statement = con.prepareStatement(query);
+				statement.execute();
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        HttpHeaders responseHeaders = new HttpHeaders();    
+        return new ResponseEntity<Void>(HttpStatus.OK); //COMENTAR PROFES
     }
 
 }
