@@ -104,7 +104,47 @@ public class ProjectsApiController implements ProjectsApi {
         @ApiParam(value = "ID of the realese",required=true ) @PathVariable("featureId") BigDecimal featureId,
         @ApiParam(value = "Array of Feature ids" ,required=true ) @RequestBody List<FeatureId> body) {
         // do some magic!
-        return new ResponseEntity<Feature>(HttpStatus.OK);
+    	projectId = transformProjectId(projectId);
+    	Connection con = null;
+    	Feature feature = new Feature();
+		try {
+			con = getConnection();
+			
+			for (int i = 0; i < body.size(); ++i) {
+				FeatureId fId = body.get(i);
+				Integer f = fId.getFeatureId();
+				String query = "INSERT INTO featuresDependencies (id_feature, dependencies) VALUES (" + featureId + "," + f + ")"; 
+				System.out.println("QUERY: " + query);
+				PreparedStatement statement = con.prepareStatement(query);
+				statement.execute();
+			}
+			
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from features where idProject = " + projectId + " and id = " + featureId);
+
+			while (rs.next()){
+				int id = rs.getInt("id");
+				int code = rs.getInt("code");
+				String name = rs.getString("name");
+				String description = rs.getString("description");
+				BigDecimal effort = rs.getBigDecimal("effort");
+				Date deadline = rs.getDate("deadline");
+				int priority = rs.getInt("priority");
+				
+				feature.setId(id);
+				feature.setCode(code);
+				feature.setName(name);
+				feature.setDescription(description);
+				feature.setEffort(effort);
+				feature.setDeadline(deadline);
+				feature.setPriority(priority);
+			}	
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        HttpHeaders responseHeaders = new HttpHeaders();    
+        return new ResponseEntity<Feature>(feature, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Void> addFeaturesToRelease(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
@@ -412,7 +452,43 @@ public class ProjectsApiController implements ProjectsApi {
         @ApiParam(value = "ID of the feature",required=true ) @PathVariable("featureId") BigDecimal featureId,
         @ApiParam(value = "IDs of the features to remove as dependencies", required = true) @RequestParam(value = "featureId2", required = true) List<BigDecimal> featureId2) {
         // do some magic!
-        return new ResponseEntity<Feature>(HttpStatus.OK);
+    	projectId = transformProjectId(projectId);
+    	Feature feature = new Feature();
+    	Connection con = null;
+		try {
+			con = getConnection();
+			
+			for (int i = 0; i < featureId2.size(); ++i) {
+				BigDecimal f = featureId2.get(i);
+				PreparedStatement statement = con.prepareStatement("DELETE FROM featuresDependencies WHERE id_feature =  "+ featureId + " and dependencies = "+ f);
+				statement.execute();
+			}
+			
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from features where idProject = " + projectId + " and id = " + featureId);
+
+			while(rs.next()){
+				int id = rs.getInt("id");
+				int code = rs.getInt("code");
+				String name = rs.getString("name");
+				String description = rs.getString("description");
+				BigDecimal effort = rs.getBigDecimal("effort");
+				Date deadline = rs.getDate("deadline");
+				int priority = rs.getInt("priority");
+				
+				feature.setId(id);
+				feature.setCode(code);
+				feature.setName(name);
+				feature.setDescription(description);
+				feature.setEffort(effort);
+				feature.setDeadline(deadline);
+				feature.setPriority(priority);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Feature>(feature, responseHeaders, HttpStatus.OK);
     }
 
     public ResponseEntity<Void> deleteFeature(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
@@ -648,6 +724,48 @@ public class ProjectsApiController implements ProjectsApi {
 				feature.setEffort(effort);
 				feature.setDeadline(deadline);
 				feature.setPriority(priority);
+				
+				List<Skill> requiredSkills = new ArrayList<Skill>();
+				
+				Statement stmt2 = con.createStatement();
+				ResultSet rs2 = stmt2.executeQuery("select * from skills INNER JOIN featureSkill ON featureSkill.id_feature = " + featureId + " AND featureSkill.id_skill = skills.id ");
+				while(rs2.next()){
+					id = rs2.getInt("id");
+					name = rs2.getString("name");
+					description = rs2.getString("description");
+					
+					Skill skill = new Skill();
+					skill.setId(id);
+					skill.setName(name);
+					skill.setDescription(description);
+					requiredSkills.add(skill);
+				}
+				feature.setRequiredSkills(requiredSkills);
+				
+				List<Feature> dependsOn = new ArrayList<Feature>();
+				Feature f = new Feature();
+				Statement stmt3 = con.createStatement();
+				ResultSet rs3 = stmt3.executeQuery("select * from features INNER JOIN featuresDependencies ON featuresDependencies.id_feature = " + featureId + " AND features.id = featuresDependencies.dependencies");
+				while(rs3.next()){
+					int id2 = rs3.getInt("id");
+					int code2 = rs3.getInt("code");
+					String name2 = rs3.getString("name");
+					String description2 = rs3.getString("description");
+					BigDecimal effort2 = rs3.getBigDecimal("effort");
+					Date deadline2 = rs3.getDate("deadline");
+					int priority2 = rs3.getInt("priority");
+					
+					f.setId(id2);
+					f.setCode(code2);
+					f.setName(name2);
+					f.setDescription(description2);
+					f.setEffort(effort2);
+					f.setDeadline(deadline2);
+					f.setPriority(priority2);
+					dependsOn.add(f);
+					//System.out.println(f);
+				}
+				feature.setDependsOn(dependsOn); //COMENTAR PROFES
 			}
 				
 		} catch (SQLException e) {
@@ -658,7 +776,7 @@ public class ProjectsApiController implements ProjectsApi {
         return new ResponseEntity<Feature>(feature, responseHeaders, HttpStatus.OK);
     }
 
-    public ResponseEntity<List<Feature>> getFeatures(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
+	public ResponseEntity<List<Feature>> getFeatures(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "any | pending | scheduled", allowableValues = "ANY, PENDING, SCHEDULED") @RequestParam(value = "status", required = false) String status) {
         // do some magic!
     	projectId = transformProjectId(projectId);
@@ -695,6 +813,48 @@ public class ProjectsApiController implements ProjectsApi {
 				feature.setEffort(effort);
 				feature.setDeadline(deadline);
 				feature.setPriority(priority);
+				
+				List<Skill> requiredSkills = new ArrayList<Skill>();
+				
+				Statement stmt2 = con.createStatement();
+				ResultSet rs2 = stmt2.executeQuery("select * from skills INNER JOIN featureSkill ON featureSkill.id_feature = " + id + " AND featureSkill.id_skill = skills.id ");
+				while(rs2.next()){
+					id = rs2.getInt("id");
+					name = rs2.getString("name");
+					description = rs2.getString("description");
+					
+					Skill skill = new Skill();
+					skill.setId(id);
+					skill.setName(name);
+					skill.setDescription(description);
+					requiredSkills.add(skill);
+				}
+				feature.setRequiredSkills(requiredSkills);
+				
+				List<Feature> dependsOn = new ArrayList<Feature>();
+				Feature f = new Feature();
+				Statement stmt3 = con.createStatement();
+				ResultSet rs3 = stmt3.executeQuery("select * from features INNER JOIN featuresDependencies ON featuresDependencies.id_feature = " + id + " AND features.id = featuresDependencies.dependencies");
+				while(rs3.next()){
+					int id2 = rs3.getInt("id");
+					int code2 = rs3.getInt("code");
+					String name2 = rs3.getString("name");
+					String description2 = rs3.getString("description");
+					BigDecimal effort2 = rs3.getBigDecimal("effort");
+					Date deadline2 = rs3.getDate("deadline");
+					int priority2 = rs3.getInt("priority");
+					
+					f.setId(id2);
+					f.setCode(code2);
+					f.setName(name2);
+					f.setDescription(description2);
+					f.setEffort(effort2);
+					f.setDeadline(deadline2);
+					f.setPriority(priority2);
+					dependsOn.add(f);
+					//System.out.println(f);
+				}
+				feature.setDependsOn(dependsOn); //COMENTAR PROFES
 				
 				list.add(feature);
 			}
@@ -745,6 +905,23 @@ public class ProjectsApiController implements ProjectsApi {
 					resource.setName(name2);
 					resource.setDescription(description2);
 					resource.setAvailability(availability);
+					
+					List<Skill> listSkills = new ArrayList<Skill>();
+					Statement stmt3 = con.createStatement();
+					ResultSet rs3 = stmt3.executeQuery("select * from skills INNER JOIN resourceSkill ON resourceSkill.id_resource = " + id2 + " AND resourceSkill.id_skill = skills.id ");
+					while(rs3.next()){
+						int idS = rs3.getInt("id");
+						String nameS = rs3.getString("name");
+						String descriptionS = rs3.getString("description");
+
+						Skill skill = new Skill();
+						skill.setId(idS);
+						skill.setName(nameS);
+						skill.setDescription(descriptionS);
+
+						listSkills.add(skill);
+					}
+					resource.setSkills(listSkills);
 					list.add(resource);
 				}
 			}	
@@ -791,6 +968,23 @@ public class ProjectsApiController implements ProjectsApi {
 				resource.setName(name);
 				resource.setDescription(description);
 				resource.setAvailability(availability);
+				
+				List<Skill> listSkills = new ArrayList<Skill>();
+				Statement stmt2 = con.createStatement();
+				ResultSet rs2 = stmt2.executeQuery("select * from skills INNER JOIN resourceSkill ON resourceSkill.id_resource = " + id + " AND resourceSkill.id_skill = skills.id ");
+				while(rs2.next()){
+					int idS = rs2.getInt("id");
+					String nameS = rs2.getString("name");
+					String descriptionS = rs2.getString("description");
+
+					Skill skill = new Skill();
+					skill.setId(idS);
+					skill.setName(nameS);
+					skill.setDescription(descriptionS);
+
+					listSkills.add(skill);
+				}
+				resource.setSkills(listSkills);
 				list.add(resource);
 			}
 		} catch (SQLException e) {
@@ -869,6 +1063,23 @@ public class ProjectsApiController implements ProjectsApi {
 					resource.setName(nameR);
 					resource.setDescription(descriptionR);
 					resource.setAvailability(availability);
+					
+					List<Skill> listSkills = new ArrayList<Skill>();
+					Statement stmt3 = con.createStatement();
+					ResultSet rs3 = stmt3.executeQuery("select * from skills INNER JOIN resourceSkill ON resourceSkill.id_resource = " + idR + " AND resourceSkill.id_skill = skills.id ");
+					while(rs3.next()){
+						int idS = rs3.getInt("id");
+						String nameS = rs3.getString("name");
+						String descriptionS = rs3.getString("description");
+
+						Skill skill = new Skill();
+						skill.setId(idS);
+						skill.setName(nameS);
+						skill.setDescription(descriptionS);
+
+						listSkills.add(skill);
+					}
+					resource.setSkills(listSkills);
 					list.add(resource);
 				}
 				
@@ -916,6 +1127,42 @@ public class ProjectsApiController implements ProjectsApi {
 				release.setDescription(description);
 				release.setStartsAt(starts_at);
 				release.setDeadline(deadline);
+				
+				List<Resource> resources = new ArrayList<Resource>();
+				
+				Statement stmt2 = con.createStatement();
+				ResultSet rs2 = stmt2.executeQuery("select * from resources INNER JOIN releaseResource ON releaseResource.id_release = " + id + " AND releaseResource.id_resource = resources.id");
+				while(rs2.next()){
+					int idR = rs2.getInt("id");
+					String nameR = rs2.getString("name");
+					String descriptionR = rs2.getString("description");
+					int availability = rs2.getInt("availability");
+					
+					Resource resource = new Resource();
+					resource.setId(idR);
+					resource.setName(nameR);
+					resource.setDescription(descriptionR);
+					resource.setAvailability(availability);
+					
+					List<Skill> listSkills = new ArrayList<Skill>();
+					Statement stmt3 = con.createStatement();
+					ResultSet rs3 = stmt3.executeQuery("select * from skills INNER JOIN resourceSkill ON resourceSkill.id_resource = " + idR + " AND resourceSkill.id_skill = skills.id ");
+					while(rs3.next()){
+						int idS = rs3.getInt("id");
+						String nameS = rs3.getString("name");
+						String descriptionS = rs3.getString("description");
+
+						Skill skill = new Skill();
+						skill.setId(idS);
+						skill.setName(nameS);
+						skill.setDescription(descriptionS);
+
+						listSkills.add(skill);
+					}
+					resource.setSkills(listSkills);
+					resources.add(resource);
+				}
+				release.setResources(resources);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -963,6 +1210,47 @@ public class ProjectsApiController implements ProjectsApi {
 				feature.setDeadline(deadline);
 				feature.setPriority(priority);
 				
+				List<Skill> requiredSkills = new ArrayList<Skill>();
+				
+				Statement stmt2 = con.createStatement();
+				ResultSet rs2 = stmt2.executeQuery("select * from skills INNER JOIN featureSkill ON featureSkill.id_feature = " + id + " AND featureSkill.id_skill = skills.id ");
+				while(rs2.next()){
+					id = rs2.getInt("id");
+					name = rs2.getString("name");
+					description = rs2.getString("description");
+					
+					Skill skill = new Skill();
+					skill.setId(id);
+					skill.setName(name);
+					skill.setDescription(description);
+					requiredSkills.add(skill);
+				}
+				feature.setRequiredSkills(requiredSkills);
+				
+				List<Feature> dependsOn = new ArrayList<Feature>();
+				Feature f = new Feature();
+				Statement stmt3 = con.createStatement();
+				ResultSet rs3 = stmt3.executeQuery("select * from features INNER JOIN featuresDependencies ON featuresDependencies.id_feature = " + id + " AND features.id = featuresDependencies.dependencies");
+				while(rs3.next()){
+					int id2 = rs3.getInt("id");
+					int code2 = rs3.getInt("code");
+					String name2 = rs3.getString("name");
+					String description2 = rs3.getString("description");
+					BigDecimal effort2 = rs3.getBigDecimal("effort");
+					Date deadline2 = rs3.getDate("deadline");
+					int priority2 = rs3.getInt("priority");
+					
+					f.setId(id2);
+					f.setCode(code2);
+					f.setName(name2);
+					f.setDescription(description2);
+					f.setEffort(effort2);
+					f.setDeadline(deadline2);
+					f.setPriority(priority2);
+					dependsOn.add(f);
+					//System.out.println(f);
+				}
+				feature.setDependsOn(dependsOn); //COMENTAR PROFES
 				list.add(feature);
 			}
 		} catch (SQLException e) {
@@ -1011,6 +1299,41 @@ public class ProjectsApiController implements ProjectsApi {
 				release.setStartsAt(starts_at);
 				release.setDeadline(deadline);
 				
+				List<Resource> resources = new ArrayList<Resource>();
+				
+				Statement stmt2 = con.createStatement();
+				ResultSet rs2 = stmt2.executeQuery("select * from resources INNER JOIN releaseResource ON releaseResource.id_release = " + id + " AND releaseResource.id_resource = resources.id");
+				while(rs2.next()){
+					int idR = rs2.getInt("id");
+					String nameR = rs2.getString("name");
+					String descriptionR = rs2.getString("description");
+					int availability = rs2.getInt("availability");
+					
+					Resource resource = new Resource();
+					resource.setId(idR);
+					resource.setName(nameR);
+					resource.setDescription(descriptionR);
+					resource.setAvailability(availability);
+					
+					List<Skill> listSkills = new ArrayList<Skill>();
+					Statement stmt3 = con.createStatement();
+					ResultSet rs3 = stmt3.executeQuery("select * from skills INNER JOIN resourceSkill ON resourceSkill.id_resource = " + idR + " AND resourceSkill.id_skill = skills.id ");
+					while(rs3.next()){
+						int idS = rs3.getInt("id");
+						String nameS = rs3.getString("name");
+						String descriptionS = rs3.getString("description");
+
+						Skill skill = new Skill();
+						skill.setId(idS);
+						skill.setName(nameS);
+						skill.setDescription(descriptionS);
+
+						listSkills.add(skill);
+					}
+					resource.setSkills(listSkills);
+					resources.add(resource);
+				}
+				release.setResources(resources);
 				list.add(release);
 			}
 		} catch (SQLException e) {
