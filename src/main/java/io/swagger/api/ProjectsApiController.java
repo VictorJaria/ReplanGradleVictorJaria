@@ -217,9 +217,22 @@ public class ProjectsApiController implements ProjectsApi {
 		try {
 			con = getConnection();
 			
-			PreparedStatement statement = con.prepareStatement("INSERT INTO resources (idProject, name, description)  VALUES ('"+ projectId +"','"+ name +"','"+ description + "','"+ availability + "')");
-			statement.execute();
-			resource.setId(100);
+			PreparedStatement statement = con.prepareStatement("INSERT INTO resources (idProject, name, description, availability)  VALUES ('"+ projectId +"','"+ name +"','"+ description + "','"+ availability + "')", Statement.RETURN_GENERATED_KEYS);
+			int affectedRows = statement.executeUpdate();
+
+			Integer idResourceResultant = null;
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+	            if (generatedKeys.next()) {
+	            	System.out.println("ID " + generatedKeys.getInt(1));
+	            	idResourceResultant = generatedKeys.getInt(1);
+	                //user.setId(generatedKeys.getLong(1));
+	            }
+	            else {
+	                throw new SQLException("Create failed");
+	            }
+	        }	
+			
+			resource.setId(idResourceResultant);
 			resource.setName(name);
 			resource.setDescription(description);
 			//resource.setAvailability(availability); COMENTAR PROFES
@@ -400,9 +413,24 @@ public class ProjectsApiController implements ProjectsApi {
     	Connection con = null;
 		try {
 			con = getConnection();
-			PreparedStatement statement = con.prepareStatement("INSERT INTO features (idProject, code, name, description, effort, deadline, priority)  VALUES ('"+ projectId +"','"+ code +"','"+ name +"','"+ description + "','"+ effort + "','"+ deadline + "','"+ priority + "')");
-			statement.execute();
 			
+			
+			PreparedStatement statement = con.prepareStatement("INSERT INTO features (idProject, code, name, description, effort, deadline, priority)  VALUES ('"+ projectId +"','"+ code +"','"+ name +"','"+ description + "','"+ effort + "','"+ deadline + "','"+ priority + "')", Statement.RETURN_GENERATED_KEYS);
+			int affectedRows = statement.executeUpdate();
+			
+			Integer idFeatureResultant = null;
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+	            if (generatedKeys.next()) {
+	            	System.out.println("ID " + generatedKeys.getInt(1));
+	            	idFeatureResultant = generatedKeys.getInt(1);
+	                //user.setId(generatedKeys.getLong(1));
+	            }
+	            else {
+	                throw new SQLException("Create failed");
+	            }
+	        }
+
+			feature.setId(idFeatureResultant);
 			feature.setCode(code);
 			feature.setName(name);
 			feature.setDescription(description);
@@ -743,10 +771,12 @@ public class ProjectsApiController implements ProjectsApi {
 				feature.setRequiredSkills(requiredSkills);
 				
 				List<Feature> dependsOn = new ArrayList<Feature>();
-				Feature f = new Feature();
+				
 				Statement stmt3 = con.createStatement();
 				ResultSet rs3 = stmt3.executeQuery("select * from features INNER JOIN featuresDependencies ON featuresDependencies.id_feature = " + featureId + " AND features.id = featuresDependencies.dependencies");
 				while(rs3.next()){
+					Feature f = new Feature();
+					
 					int id2 = rs3.getInt("id");
 					int code2 = rs3.getInt("code");
 					String name2 = rs3.getString("name");
@@ -763,9 +793,8 @@ public class ProjectsApiController implements ProjectsApi {
 					f.setDeadline(deadline2);
 					f.setPriority(priority2);
 					dependsOn.add(f);
-					//System.out.println(f);
 				}
-				feature.setDependsOn(dependsOn); //COMENTAR PROFES
+				feature.setDependsOn(dependsOn); 
 			}
 				
 		} catch (SQLException e) {
@@ -832,10 +861,12 @@ public class ProjectsApiController implements ProjectsApi {
 				feature.setRequiredSkills(requiredSkills);
 				
 				List<Feature> dependsOn = new ArrayList<Feature>();
-				Feature f = new Feature();
+				
 				Statement stmt3 = con.createStatement();
 				ResultSet rs3 = stmt3.executeQuery("select * from features INNER JOIN featuresDependencies ON featuresDependencies.id_feature = " + id + " AND features.id = featuresDependencies.dependencies");
 				while(rs3.next()){
+					Feature f = new Feature();
+					
 					int id2 = rs3.getInt("id");
 					int code2 = rs3.getInt("code");
 					String name2 = rs3.getString("name");
@@ -843,6 +874,7 @@ public class ProjectsApiController implements ProjectsApi {
 					BigDecimal effort2 = rs3.getBigDecimal("effort");
 					Date deadline2 = rs3.getDate("deadline");
 					int priority2 = rs3.getInt("priority");
+					
 					
 					f.setId(id2);
 					f.setCode(code2);
@@ -852,9 +884,9 @@ public class ProjectsApiController implements ProjectsApi {
 					f.setDeadline(deadline2);
 					f.setPriority(priority2);
 					dependsOn.add(f);
-					//System.out.println(f);
+					System.out.println(f);
 				}
-				feature.setDependsOn(dependsOn); //COMENTAR PROFES
+				feature.setDependsOn(dependsOn); 
 				
 				list.add(feature);
 			}
@@ -1228,10 +1260,12 @@ public class ProjectsApiController implements ProjectsApi {
 				feature.setRequiredSkills(requiredSkills);
 				
 				List<Feature> dependsOn = new ArrayList<Feature>();
-				Feature f = new Feature();
+				
 				Statement stmt3 = con.createStatement();
 				ResultSet rs3 = stmt3.executeQuery("select * from features INNER JOIN featuresDependencies ON featuresDependencies.id_feature = " + id + " AND features.id = featuresDependencies.dependencies");
 				while(rs3.next()){
+					Feature f = new Feature();
+					
 					int id2 = rs3.getInt("id");
 					int code2 = rs3.getInt("code");
 					String name2 = rs3.getString("name");
@@ -1248,9 +1282,8 @@ public class ProjectsApiController implements ProjectsApi {
 					f.setDeadline(deadline2);
 					f.setPriority(priority2);
 					dependsOn.add(f);
-					//System.out.println(f);
 				}
-				feature.setDependsOn(dependsOn); //COMENTAR PROFES
+				feature.setDependsOn(dependsOn);
 				list.add(feature);
 			}
 		} catch (SQLException e) {
