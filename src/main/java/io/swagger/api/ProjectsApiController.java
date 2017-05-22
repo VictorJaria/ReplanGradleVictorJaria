@@ -257,9 +257,21 @@ public class ProjectsApiController implements ProjectsApi {
 		try {
 			con = getConnection();
 			
-			PreparedStatement statement = con.prepareStatement("INSERT INTO skills (idProject, name, description)  VALUES ('"+ projectId +"','"+ name +"','"+ description + "')");
-			statement.execute();
-			//skill.setId(100);
+			PreparedStatement statement = con.prepareStatement("INSERT INTO skills (idProject, name, description)  VALUES ('"+ projectId +"','"+ name +"','"+ description + "')", Statement.RETURN_GENERATED_KEYS);
+			int affectedRows = statement.executeUpdate();
+
+			Integer idSkillResultant = null;
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+	            if (generatedKeys.next()) {
+	            	System.out.println("ID " + generatedKeys.getInt(1));
+	            	idSkillResultant = generatedKeys.getInt(1);
+	                //user.setId(generatedKeys.getLong(1));
+	            }
+	            else {
+	                throw new SQLException("Create failed");
+	            }
+	        }	
+			skill.setId(idSkillResultant);
 			skill.setName(name);
 			skill.setDescription(description);
 				
