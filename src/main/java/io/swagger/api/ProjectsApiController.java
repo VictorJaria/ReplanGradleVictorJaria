@@ -8,6 +8,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 import io.swagger.model.Error;
 import io.swagger.model.Feature;
@@ -206,8 +208,16 @@ public class ProjectsApiController implements ProjectsApi {
 			release.setId(idReleaseResultant);
 			release.setName(name);
 			release.setDescription(description);
-			//release.startsAt(startsAt);
-			//release.deadline(deadline);
+
+			LocalDate date = startsAt.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			Date startsat = Date.valueOf(date);
+			release.startsAt(startsat);
+			
+			LocalDate date2 = deadline.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			Date deadlineAux = Date.valueOf(date2);
+			release.deadline(deadlineAux);
+			
+			System.out.println(startsat + "    " + deadlineAux);
 				
 		} catch (SQLException e) {
 			e.printStackTrace();
