@@ -188,9 +188,22 @@ public class ProjectsApiController implements ProjectsApi {
 		try {
 			con = getConnection();
 			
-			PreparedStatement statement = con.prepareStatement("INSERT INTO releases (idProject, name, description, starts_at, deadline)  VALUES ('"+ projectId +"','"+ name +"','"+ description + "','"+ startsAt + "','" + deadline +"')");
-			statement.execute();
-			release.setId(100); //COMENTAR PROFE QUE ID SACAR
+			PreparedStatement statement = con.prepareStatement("INSERT INTO releases (idProject, name, description, starts_at, deadline)  VALUES ('"+ projectId +"','"+ name +"','"+ description + "','"+ startsAt + "','" + deadline +"')", Statement.RETURN_GENERATED_KEYS);
+			int affectedRows = statement.executeUpdate();
+
+			Integer idReleaseResultant = null;
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+	            if (generatedKeys.next()) {
+	            	System.out.println("ID " + generatedKeys.getInt(1));
+	            	idReleaseResultant = generatedKeys.getInt(1);
+	                //user.setId(generatedKeys.getLong(1));
+	            }
+	            else {
+	                throw new SQLException("Create failed");
+	            }
+	        }	
+			
+			release.setId(idReleaseResultant);
 			release.setName(name);
 			release.setDescription(description);
 			//release.startsAt(startsAt);
@@ -472,9 +485,22 @@ public class ProjectsApiController implements ProjectsApi {
 		try {
 			con = getConnection();
 			
-			PreparedStatement statement = con.prepareStatement("INSERT INTO projects (name, description, effort_unit, hours_per_effort_unit, hours_per_week_and_full_time_resource)  VALUES ('"+ name +"','"+ description + "','"+ effortUnit + "','"+ hoursPerEffortUnit + "','"+ hoursPerWeekAndFullTimeResource + "')");
-			statement.execute();
+			PreparedStatement statement = con.prepareStatement("INSERT INTO projects (name, description, effort_unit, hours_per_effort_unit, hours_per_week_and_full_time_resource)  VALUES ('"+ name +"','"+ description + "','"+ effortUnit + "','"+ hoursPerEffortUnit + "','"+ hoursPerWeekAndFullTimeResource + "')", Statement.RETURN_GENERATED_KEYS);
+			int affectedRows = statement.executeUpdate();
+
+			Integer idProjectResultant = null;
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+	            if (generatedKeys.next()) {
+	            	System.out.println("ID " + generatedKeys.getInt(1));
+	            	idProjectResultant = generatedKeys.getInt(1);
+	                //user.setId(generatedKeys.getLong(1));
+	            }
+	            else {
+	                throw new SQLException("Create failed");
+	            }
+	        }	
 			
+			project.setId(idProjectResultant.toString());
 			project.setName(name);
 			project.setDescription(description);
 			project.setEffortUnit(effortUnit);

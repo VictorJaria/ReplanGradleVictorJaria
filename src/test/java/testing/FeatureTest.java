@@ -49,7 +49,7 @@ public class FeatureTest {
 		if (! feature.getName().equals("Feature Test")) isCorrect = false;
 		if (! feature.getDescription().equals("Feature per provar el test")) isCorrect = false;
 		if ( feature.getEffort().compareTo(new BigDecimal("10")) != 0  ) isCorrect = false;
-		//if ( feature.getDeadline().compareTo(dt.toDate()) == 0) isCorrect = false;  ES NULL, revisar
+		//if (feature.getDeadline().compareTo(dt.toDate()) != 0) isCorrect = false;  ES NULL, revisar
 		if (feature.getPriority() != 1) isCorrect = false;
 
 		//assertEquals(true, isCorrect);
