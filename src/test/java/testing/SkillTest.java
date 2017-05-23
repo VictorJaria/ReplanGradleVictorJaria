@@ -30,7 +30,6 @@ public class SkillTest {
 
 		ResponseEntity<Skill> response2  = apiController.addNewSkillToProject("1", skillData);
 
-		
 		/*READ*/
 		Integer idSkill = response2.getBody().getId();
 		BigDecimal bigSkill = new BigDecimal(idSkill.toString());

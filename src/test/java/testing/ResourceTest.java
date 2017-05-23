@@ -5,14 +5,11 @@ import static org.junit.Assert.*;
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 
 import io.swagger.api.ProjectsApiController;
-import io.swagger.model.Feature;
-import io.swagger.model.FeatureData;
-import io.swagger.model.NewFeatureData;
+
 import io.swagger.model.Resource;
 import io.swagger.model.ResourceData;
 
@@ -33,7 +30,6 @@ public class ResourceTest {
 
 		ResponseEntity<Resource> response2  = apiController.addNewResourceToProject("1", resourceData);
 
-		
 		/*READ*/
 		Integer idResource = response2.getBody().getId();
 		BigDecimal bigResource = new BigDecimal(idResource.toString());

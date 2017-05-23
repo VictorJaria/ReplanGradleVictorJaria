@@ -23,8 +23,6 @@ ProjectsApiController apiController = new ProjectsApiController();
 	public void test() {
 		/*CREATE*/
 		
-		/*creació dades Release*/
-		
 		NewRelease releaseData = new NewRelease();
 		releaseData.setName("Release Test");
 		releaseData.setDescription("Release per provar el test");
@@ -48,10 +46,16 @@ ProjectsApiController apiController = new ProjectsApiController();
 
 		if (! release.getName().equals("Release Test")) isCorrect = false;		
 		if (! release.getDescription().equals("Release per provar el test")) isCorrect = false;
-		//if (release.getStartsAt().compareTo(startsAt.toDate()) != 0) isCorrect = false;
-		//if (release.getDeadline().compareTo(deadline.toDate()) != 0) isCorrect = false;
+		
+		String startsResposta = new DateTime(release.getStartsAt()).toString("MMMM dd, yyyy");
+		String startsHardcode = startsAt.toString("MMMM dd, yyyy");
 
-		//assertEquals(true, isCorrect);
+		String deadlineResposta = new DateTime(release.getDeadline()).toString("MMMM dd, yyyy");
+		String deadlineHardcode = deadline.toString("MMMM dd, yyyy");
+		
+		if (! startsResposta.equals(startsHardcode)) isCorrect = false;
+		if (! deadlineResposta.equals(deadlineHardcode)) isCorrect = false;
+		
 		/*UPDATE*/
 		ReleaseData rd = new ReleaseData();
 
@@ -71,10 +75,18 @@ ProjectsApiController apiController = new ProjectsApiController();
 		
 		if (! release.getName().equals("Release Test Modificat")) isCorrect = false;
 		if (! release.getDescription().equals("Release per provar el test Modificat")) isCorrect = false;
-		//if (release.getDeadline().compareTo(newStartsAt.toDate()) != 0) isCorrect = false;
-		//if (release.getDeadline().compareTo(newDeadline.toDate()) != 0) isCorrect = false;
 		
+		startsResposta = new DateTime(release.getStartsAt()).toString("MMMM dd, yyyy");
+		startsHardcode = newStartsAt.toString("MMMM dd, yyyy");
+
+		deadlineResposta = new DateTime(release.getDeadline()).toString("MMMM dd, yyyy");
+		deadlineHardcode = newDeadline.toString("MMMM dd, yyyy");
+		
+		if (! startsResposta.equals(startsHardcode)) isCorrect = false;
+		if (! deadlineResposta.equals(deadlineHardcode)) isCorrect = false;
+
 		assertEquals(true, isCorrect);
+		
 		/*DELETE*/
 		ResponseEntity<Void> responseDelete  = apiController.deleteRelease("1", bigRelease);
 		ResponseEntity<Release> response4  = apiController.getRelease("1", bigRelease); //mirar

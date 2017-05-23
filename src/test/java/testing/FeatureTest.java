@@ -42,16 +42,20 @@ public class FeatureTest {
 		BigDecimal bigFeature = new BigDecimal(idFeature.toString());
 		ResponseEntity<Feature> response  = apiController.getFeature("1", bigFeature);    
 
-		Feature feature = response.getBody();
-
+		Feature feature = response.getBody();		
 		Boolean isCorrect = true;
+		
 		if (feature.getCode() != 999) isCorrect = false;
 		if (! feature.getName().equals("Feature Test")) isCorrect = false;
 		if (! feature.getDescription().equals("Feature per provar el test")) isCorrect = false;
 		if ( feature.getEffort().compareTo(new BigDecimal("10")) != 0  ) isCorrect = false;
-		//if (feature.getDeadline().compareTo(dt.toDate()) != 0) isCorrect = false;  ES NULL, revisar
+		
+		String dataResposta = new DateTime(feature.getDeadline()).toString("MMMM dd, yyyy");
+		String dataHardcode = dt.toString("MMMM dd, yyyy");
+		
+		if (! dataResposta.equals(dataHardcode)) isCorrect = false;
 		if (feature.getPriority() != 1) isCorrect = false;
-
+		
 		//assertEquals(true, isCorrect);
 		
 		/*UPDATE*/
@@ -71,10 +75,13 @@ public class FeatureTest {
 		if (! feature.getName().equals("Feature Test Modificat")) isCorrect = false;
 		if (! feature.getDescription().equals("Feature per provar el test Modificat")) isCorrect = false;
 		if ( feature.getEffort().compareTo(new BigDecimal("101")) != 0  ) isCorrect = false;
-		//if ( feature.getDeadline().compareTo(dt.toDate()) == 0) isCorrect = false;  ES NULL, revisar
+		
+		dataResposta = new DateTime(feature.getDeadline()).toString("MMMM dd, yyyy");
+		dataHardcode = dt2.toString("MMMM dd, yyyy");
+		
+		if (! dataResposta.equals(dataHardcode)) isCorrect = false;
 		if (feature.getPriority() != 2) isCorrect = false;
 
-		
 		/*DELETE*/
 		ResponseEntity<Void> responseDelete  = apiController.deleteFeature("1", bigFeature);
 		ResponseEntity<Feature> response4  = apiController.getFeature("1", bigFeature);  //FALTA PORQUE DEVUELVE FEATURE con TOdo NULL y no debe ser asi
