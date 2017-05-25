@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 
 import io.swagger.api.ProjectsApiController;
+import io.swagger.model.Feature;
 import io.swagger.model.NewRelease;
 import io.swagger.model.Release;
 import io.swagger.model.ReleaseData;
@@ -21,6 +22,12 @@ ProjectsApiController apiController = new ProjectsApiController();
 	
 	@Test
 	public void test() {
+		
+		/*Totes les releases per testejar getReleases que ho farem al final*/
+		ResponseEntity<List<Release>> allReleasesBefore  = apiController.getReleases("1");
+		List<Release> listaReleasesBefore = allReleasesBefore.getBody();
+		
+		
 		/*CREATE*/
 		
 		NewRelease releaseData = new NewRelease();
@@ -86,6 +93,26 @@ ProjectsApiController apiController = new ProjectsApiController();
 		if (! deadlineResposta.equals(deadlineHardcode)) isCorrect = false;
 
 		assertEquals(true, isCorrect);
+		
+		
+		/*Per testejar getReleases abans de borrar*/
+		
+		for (int i = 0; i < listaReleasesBefore.size(); ++i) {
+			Release s = listaReleasesBefore.get(i);
+			if (s.getId() == idRelease) {
+				isCorrect = false;
+			}
+		}
+		ResponseEntity<List<Release>> allReleasesAfter  = apiController.getReleases("1");
+		List<Release> listaReleasesAfter = allReleasesAfter.getBody();
+		Boolean existeix = false;
+		for (int i = 0; i < listaReleasesAfter.size(); ++i) {
+			Release s = listaReleasesAfter.get(i);
+			if (s.getId() == idRelease) {
+				existeix = true;
+			}
+		}
+		if (!existeix) isCorrect = false;
 		
 		/*DELETE*/
 		ResponseEntity<Void> responseDelete  = apiController.deleteRelease("1", bigRelease);

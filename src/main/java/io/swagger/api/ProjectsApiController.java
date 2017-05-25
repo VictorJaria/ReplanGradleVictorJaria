@@ -63,8 +63,8 @@ public class ProjectsApiController implements ProjectsApi {
 	
 	public Connection getConnection() {
 		Connection connection = null;
-		System.out.println("-------- PostgreSQL "
-				+ "JDBC Connection Testing ------------");
+		/*System.out.println("-------- PostgreSQL "
+				+ "JDBC Connection Testing ------------");*/
 		
 		try {
 			Class.forName("org.postgresql.Driver");
@@ -76,7 +76,7 @@ public class ProjectsApiController implements ProjectsApi {
 			return connection;
 		}
 
-		System.out.println("PostgreSQL JDBC Driver Registered!");
+		//System.out.println("PostgreSQL JDBC Driver Registered!");
 		try {
 			connection = DriverManager.getConnection(url, userName,password);
 
@@ -88,7 +88,7 @@ public class ProjectsApiController implements ProjectsApi {
 		}
 
 		if (connection != null) {
-			System.out.println("You made it, take control your database now!");
+			//System.out.println("You made it, take control your database now!");
 		} else {
 			System.out.println("Failed to make connection!");
 		}
@@ -407,7 +407,7 @@ public class ProjectsApiController implements ProjectsApi {
 			}
 			
 			Statement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select * from resource where idProject = " + projectId + " and id = " + resourceId);
+			ResultSet rs = stmt.executeQuery("select * from resources where idProject = " + projectId + " and id = " + resourceId);
 
 			while(rs.next()){
 				Integer id = rs.getInt("id");
@@ -464,7 +464,7 @@ public class ProjectsApiController implements ProjectsApi {
 	                throw new SQLException("Create failed");
 	            }
 	        }
-
+			//System.out.println(idFeatureResultant);
 			feature.setId(idFeatureResultant);
 			feature.setCode(code);
 			feature.setName(name);

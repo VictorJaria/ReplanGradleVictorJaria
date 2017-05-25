@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -13,6 +14,7 @@ import io.swagger.api.ProjectsApiController;
 import io.swagger.model.Feature;
 import io.swagger.model.FeatureData;
 import io.swagger.model.NewFeatureData;
+import io.swagger.model.Skill;
 
 public class FeatureTest {
 	
@@ -21,6 +23,10 @@ public class FeatureTest {
 	@SuppressWarnings("deprecation")
 	@Test
 	public void test() {
+		
+		/*Totes les features per testejar getFeatures que ho farem al final*/
+		ResponseEntity<List<Feature>> allFeaturesBefore  = apiController.getFeatures("1", "");
+		List<Feature> listaFeaturesBefore = allFeaturesBefore.getBody();
 		
 		/*CREATE*/
 		
@@ -39,6 +45,7 @@ public class FeatureTest {
 		
 		/*READ*/
 		Integer idFeature = response2.getBody().getId();
+		System.out.println("EI, SOY UN ID: " + idFeature);
 		BigDecimal bigFeature = new BigDecimal(idFeature.toString());
 		ResponseEntity<Feature> response  = apiController.getFeature("1", bigFeature);    
 
@@ -81,11 +88,30 @@ public class FeatureTest {
 		
 		if (! dataResposta.equals(dataHardcode)) isCorrect = false;
 		if (feature.getPriority() != 2) isCorrect = false;
+		
+		/*Per testejar getFeatures abans de borrar*/
+		
+		for (int i = 0; i < listaFeaturesBefore.size(); ++i) {
+			Feature s = listaFeaturesBefore.get(i);
+			if (s.getId() == idFeature) {
+				isCorrect = false;
+			}
+		}
+		ResponseEntity<List<Feature>> allFeaturesAfter  = apiController.getFeatures("1", "");
+		List<Feature> listaFeaturesAfter = allFeaturesAfter.getBody();
+		Boolean existeix = false;
+		for (int i = 0; i < listaFeaturesAfter.size(); ++i) {
+			Feature s = listaFeaturesAfter.get(i);
+			if (s.getId() == idFeature) {
+				existeix = true;
+			}
+		}
+		if (!existeix) isCorrect = false;
 
 		/*DELETE*/
 		ResponseEntity<Void> responseDelete  = apiController.deleteFeature("1", bigFeature);
 		ResponseEntity<Feature> response4  = apiController.getFeature("1", bigFeature);  //FALTA PORQUE DEVUELVE FEATURE con TOdo NULL y no debe ser asi
-		System.out.println(response4);
+		//System.out.println(response4);
 		
 		assertEquals(true, isCorrect);
 		
