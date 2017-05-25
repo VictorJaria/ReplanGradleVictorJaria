@@ -2,23 +2,19 @@ package testing;
 
 import static org.junit.Assert.*;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 
 import io.swagger.api.ProjectsApiController;
-import io.swagger.model.Feature;
-import io.swagger.model.FeatureId;
+
 import io.swagger.model.Release;
 
 public class FeaturesToRelaseTest {
 
 	ProjectsApiController apiController = new ProjectsApiController();
 
-	@SuppressWarnings("null")
 	@Test
 	public void test() {
 		Boolean isCorrect = true;		
@@ -86,10 +82,10 @@ public class FeaturesToRelaseTest {
 					System.out.println("MAAAAL");
 				}
 			}
-		}
+		}*/
 		
 		
-		assertEquals(true, isCorrect);*/
+		assertEquals(true, isCorrect);
 	}
 
 }

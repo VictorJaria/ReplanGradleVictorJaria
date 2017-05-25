@@ -12,7 +12,6 @@ import io.swagger.api.ProjectsApiController;
 import io.swagger.model.NewProjectData;
 import io.swagger.model.Project;
 import io.swagger.model.ProjectData;
-import io.swagger.model.Release;
 
 
 public class ProjectTest {
@@ -64,7 +63,7 @@ public class ProjectTest {
 		pd.setHoursPerEffortUnit(new BigDecimal("7"));
 		pd.setHoursPerWeekAndFullTimeResource(new BigDecimal("91"));
 
-		ResponseEntity<Project> responseModify  = apiController.modifyProject(idProject, pd);
+		apiController.modifyProject(idProject, pd);
 		ResponseEntity<Project> response3 = apiController.getProject(idProject); 
 		
 		project = response3.getBody();
@@ -96,7 +95,7 @@ public class ProjectTest {
 
 		//assertEquals(true, isCorrect);
 		/*DELETE*/
-		ResponseEntity<Void> responseDelete  = apiController.deleteProject(idProject);
+		apiController.deleteProject(idProject);
 		ResponseEntity<Project> response4  = apiController.getProject(idProject); 
 
 		System.out.println(response4.getBody());

@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 
 import io.swagger.api.ProjectsApiController;
 import io.swagger.model.Feature;
-import io.swagger.model.FeatureId;
 import io.swagger.model.Skill;
 import io.swagger.model.SkillId;
 

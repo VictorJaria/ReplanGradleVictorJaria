@@ -17,7 +17,6 @@ public class DependenciesTest {
 
 	ProjectsApiController apiController = new ProjectsApiController();
 
-	@SuppressWarnings("null")
 	@Test
 	public void test() {
 		Boolean isCorrect = true;		
@@ -83,8 +82,6 @@ public class DependenciesTest {
 				}
 			}
 		}
-		
-		
 		assertEquals(true, isCorrect);
 	}
 

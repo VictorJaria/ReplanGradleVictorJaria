@@ -10,11 +10,9 @@ import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 
 import io.swagger.api.ProjectsApiController;
-import io.swagger.model.Feature;
 import io.swagger.model.NewRelease;
 import io.swagger.model.Release;
 import io.swagger.model.ReleaseData;
-import io.swagger.model.Skill;
 
 public class ReleaseTest {
 
@@ -75,7 +73,7 @@ ProjectsApiController apiController = new ProjectsApiController();
 		rd.setStartsAt(newStartsAt);
 		rd.setDeadline(newDeadline);
 
-		ResponseEntity<Release> responseModify  = apiController.modifyRelease("1", bigRelease, rd);
+		apiController.modifyRelease("1", bigRelease, rd);
 		ResponseEntity<Release> response3  = apiController.getRelease("1", bigRelease);
 		
 		release = response3.getBody();
@@ -115,7 +113,7 @@ ProjectsApiController apiController = new ProjectsApiController();
 		if (!existeix) isCorrect = false;
 		
 		/*DELETE*/
-		ResponseEntity<Void> responseDelete  = apiController.deleteRelease("1", bigRelease);
+		apiController.deleteRelease("1", bigRelease);
 		ResponseEntity<Release> response4  = apiController.getRelease("1", bigRelease); //mirar
 
 		System.out.println(response4.getBody());

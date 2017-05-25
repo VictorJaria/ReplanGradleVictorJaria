@@ -3,7 +3,6 @@ package testing;
 import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 
 import org.joda.time.DateTime;
@@ -14,13 +13,11 @@ import io.swagger.api.ProjectsApiController;
 import io.swagger.model.Feature;
 import io.swagger.model.FeatureData;
 import io.swagger.model.NewFeatureData;
-import io.swagger.model.Skill;
 
 public class FeatureTest {
 	
 	ProjectsApiController apiController = new ProjectsApiController();
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void test() {
 		
@@ -74,7 +71,8 @@ public class FeatureTest {
 		fd.setPriority(2);
 		DateTime dt2 = new DateTime(2018, 3, 26, 12, 0, 0, 0);
 		fd.setDeadline(dt2);
-		ResponseEntity<Feature> responseModify  = apiController.modifyFeature("1", bigFeature, fd);
+		
+		apiController.modifyFeature("1", bigFeature, fd);
 		ResponseEntity<Feature> response3  = apiController.getFeature("1", bigFeature); 
 		
 		feature = response3.getBody();
@@ -109,8 +107,8 @@ public class FeatureTest {
 		if (!existeix) isCorrect = false;
 
 		/*DELETE*/
-		ResponseEntity<Void> responseDelete  = apiController.deleteFeature("1", bigFeature);
-		ResponseEntity<Feature> response4  = apiController.getFeature("1", bigFeature);  //FALTA PORQUE DEVUELVE FEATURE con TOdo NULL y no debe ser asi
+		apiController.deleteFeature("1", bigFeature);
+		apiController.getFeature("1", bigFeature);  //FALTA PORQUE DEVUELVE FEATURE con TOdo NULL y no debe ser asi
 		//System.out.println(response4);
 		
 		assertEquals(true, isCorrect);

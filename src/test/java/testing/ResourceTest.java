@@ -58,7 +58,7 @@ public class ResourceTest {
 		rd.setDescription("Resource per provar el test Modificat");
 		rd.setAvailability(new BigDecimal("42"));
 
-		ResponseEntity<Resource> responseModify  = apiController.modifyResource("1", bigResource, rd);
+		apiController.modifyResource("1", bigResource, rd);
 		ResponseEntity<List<Resource>> response3  = apiController.getProjectResources("1"); 
 		
 		listaResources = response3.getBody();
@@ -75,7 +75,7 @@ public class ResourceTest {
 
 		
 		/*DELETE*/
-		ResponseEntity<Void> responseDelete  = apiController.deleteResource("1", bigResource);
+		apiController.deleteResource("1", bigResource);
 		ResponseEntity<List<Resource>> response4  = apiController.getProjectResources("1"); 
 
 		listaResources = response4.getBody();

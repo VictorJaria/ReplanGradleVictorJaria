@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 
 import io.swagger.api.ProjectsApiController;
-import io.swagger.model.Feature;
 import io.swagger.model.Resource;
 import io.swagger.model.Skill;
 import io.swagger.model.SkillId;

@@ -9,8 +9,6 @@ import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 
 import io.swagger.api.ProjectsApiController;
-import io.swagger.model.Resource;
-import io.swagger.model.ResourceData;
 import io.swagger.model.Skill;
 import io.swagger.model.SkillData;
 
@@ -57,7 +55,7 @@ public class SkillTest {
 		sd.setName("Skill Test Modificat");
 		sd.setDescription("Skill per provar el test Modificat");
 
-		ResponseEntity<Skill> responseModify  = apiController.modifySkill("1", bigSkill, sd);
+		apiController.modifySkill("1", bigSkill, sd);
 		ResponseEntity<List<Skill>> response3  = apiController.getProjectSkills("1"); 
 		
 		listaSkills = response3.getBody();
@@ -72,7 +70,7 @@ public class SkillTest {
 		
 		//assertEquals(true, isCorrect);
 		/*DELETE*/
-		ResponseEntity<Void> responseDelete  = apiController.deleteSkill("1", bigSkill);
+		apiController.deleteSkill("1", bigSkill);
 		ResponseEntity<List<Skill>> response4  = apiController.getProjectSkills("1"); 
 
 		listaSkills = response4.getBody();
