@@ -36,6 +36,7 @@ import io.swagger.model.SkillId;
 import io.swagger.annotations.*;
 
 import org.joda.time.DateTime;
+import org.joda.time.Weeks;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +48,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.List;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 
 @javax.annotation.Generated(value = "class io.swagger.codegen.languages.SpringCodegen", date = "2017-04-10T09:10:24.462Z")
@@ -1305,12 +1311,15 @@ public class ProjectsApiController implements ProjectsApi {
 					skill.setDescription(description);
 					requiredSkills.add(skill);
 				}
+				//System.out.println("SOMOS LAS REQUIRED SKILLS");
+				//System.out.println(requiredSkills);
 				feature.setRequiredSkills(requiredSkills);
 				
 				List<Feature> dependsOn = new ArrayList<Feature>();
 				
 				Statement stmt3 = con.createStatement();
-				ResultSet rs3 = stmt3.executeQuery("select * from features INNER JOIN featuresDependencies ON featuresDependencies.id_feature = " + id + " AND features.id = featuresDependencies.dependencies");
+				System.out.println("IIIIDDD" + id);
+				ResultSet rs3 = stmt3.executeQuery("select * from features INNER JOIN featuresDependencies ON featuresDependencies.id_feature = " + feature.getId() + " AND features.id = featuresDependencies.dependencies");
 				while(rs3.next()){
 					Feature f = new Feature();
 					
@@ -1331,6 +1340,8 @@ public class ProjectsApiController implements ProjectsApi {
 					f.setPriority(priority2);
 					dependsOn.add(f);
 				}
+				System.out.println("SOMOS LAS DEPENDS ON");
+				System.out.println(dependsOn);
 				feature.setDependsOn(dependsOn);
 				list.add(feature);
 			}
@@ -1342,9 +1353,127 @@ public class ProjectsApiController implements ProjectsApi {
         return new ResponseEntity<List<Feature>>(list, responseHeaders, HttpStatus.OK);
     }
 
-    public ResponseEntity<Plan> getReleasePlan(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
+    @SuppressWarnings("unchecked")
+	public ResponseEntity<Plan> getReleasePlan(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
         @ApiParam(value = "ID of the realese",required=true ) @PathVariable("releaseId") BigDecimal releaseId) {
         // do some magic!
+    	JSONObject obj = new JSONObject();
+    	Plan plan = new Plan();
+    	
+    	ResponseEntity<Release> r = this.getRelease(projectId, releaseId);
+    	Release release = r.getBody();
+    	
+    	ResponseEntity<Project> p = this.getProject(projectId);
+    	Project project = p.getBody();
+    	
+    	/* nbWeeks and hoursPerWeek */
+    	
+    	Date startsAt = release.getStartsAt();
+    	Date deadLine = release.getDeadline();
+
+    	int nbWeeks = Weeks.weeksBetween(new DateTime(startsAt), new DateTime(deadLine)).getWeeks();
+    	BigDecimal hoursPerWeek = project.getHoursPerWeekAndFullTimeResource();
+    	
+    	
+    	obj.put("nbWeeks", nbWeeks);
+    	obj.put("hoursPerWeek", hoursPerWeek);
+    	
+    	/* features */
+    	
+    	ResponseEntity<List<Feature>> f = this.getReleaseFeatures(projectId, releaseId);
+    	List<Feature> features = f.getBody();
+    	
+    	JSONArray featuresList = new JSONArray();
+    	for (int i = 0; i < features.size(); ++i) {
+    		Feature actual = features.get(i);
+    		
+    		JSONObject feat = new JSONObject();
+    		feat.put("name", actual.getId());
+    		feat.put("duration", (actual.getEffort().multiply(project.getHoursPerEffortUnit())));
+    		
+    		JSONObject priority = new JSONObject();
+    		priority.put("level", actual.getPriority());
+    		priority.put("score", actual.getPriority());
+    		
+    		feat.put("priority", priority);
+    		
+    		/* required skills de la feature*/
+    		JSONArray requiredSkills = new JSONArray();
+    		List<Skill> skills = actual.getRequiredSkills();
+    		
+    		for (int j = 0; j < skills.size(); ++j) {
+        		JSONObject skill = new JSONObject();
+        		skill.put("name", skills.get(j).getId());
+        		requiredSkills.add(skill);
+    		}
+    		feat.put("required_skills", requiredSkills);
+    		
+    		/*depends on de la feature*/
+    		JSONArray dependsOn = new JSONArray();
+    		List<Feature> depends = actual.getDependsOn();
+    		
+    		System.out.println("SOY LAS DEPENDS ON: " + dependsOn);
+    		for (int j = 0; j < depends.size(); ++j) {
+        		JSONObject featureDepend = new JSONObject();
+        		featureDepend.put("name", depends.get(j).getId());
+        		featureDepend.put("duration", depends.get(j).getEffort().multiply(project.getHoursPerEffortUnit()));
+        		
+        		JSONObject priority2 = new JSONObject();
+        		priority2.put("level", depends.get(j).getPriority());
+        		priority2.put("score", depends.get(j).getPriority());
+        		
+        		featureDepend.put("priority", priority);
+        		
+        		dependsOn.add(featureDepend);
+    		}
+    		feat.put("depends_on", dependsOn);
+    		
+
+    		featuresList.add(feat);
+    	}
+    	obj.put("features", featuresList); //add features to final object
+    	
+    	
+    	/* resources */
+    	ResponseEntity<List<Resource>> res = this.getProjectResources(projectId);
+    	List<Resource> resources = res.getBody();
+    	
+    	JSONArray resourcesList = new JSONArray();
+    	for (int i = 0; i < resources.size(); ++i) {
+    		Resource actual = resources.get(i);
+    	
+    		JSONObject resource = new JSONObject();
+    		resource.put("name", actual.getId());
+    		resource.put("availability", (actual.getAvailability() * 0.01 * 40));
+    		
+    		JSONArray skillsResource = new JSONArray();
+    		for (int j = 0; j < actual.getSkills().size(); ++j) {
+    			JSONObject name = new JSONObject();
+        		name.put("name", actual.getSkills().get(j).getId());
+        		skillsResource.add(name);
+    		}
+    		resource.put("skills", skillsResource);
+    		resourcesList.add(resource);
+    	}
+    	obj.put("resources", resourcesList);
+    	
+    	ObjectMapper mapper = new ObjectMapper();
+    	try {
+			System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj));
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+    	/*JSONObject obj = new JSONObject();
+        obj.put("name", "mkyong.com");
+        obj.put("age", new Integer(100));
+
+        JSONArray list = new JSONArray();
+        list.add("msg 1");
+        list.add("msg 2");
+        list.add("msg 3");
+
+        obj.put("messages", list);*/
+    	
         return new ResponseEntity<Plan>(HttpStatus.OK);
     }
 
