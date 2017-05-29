@@ -1,5 +1,8 @@
 package io.swagger.api;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
@@ -35,6 +38,15 @@ import io.swagger.model.SkillId;
 
 import io.swagger.annotations.*;
 
+
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.HttpClientBuilder;
+
 import org.joda.time.DateTime;
 import org.joda.time.Weeks;
 import org.springframework.http.HttpHeaders;
@@ -43,10 +55,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
+
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.multipart.MultipartFile;
+
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,6 +65,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 
 @javax.annotation.Generated(value = "class io.swagger.codegen.languages.SpringCodegen", date = "2017-04-10T09:10:24.462Z")
@@ -1358,7 +1371,6 @@ public class ProjectsApiController implements ProjectsApi {
         @ApiParam(value = "ID of the realese",required=true ) @PathVariable("releaseId") BigDecimal releaseId) {
         // do some magic!
     	JSONObject obj = new JSONObject();
-    	Plan plan = new Plan();
     	
     	ResponseEntity<Release> r = this.getRelease(projectId, releaseId);
     	Release release = r.getBody();
@@ -1378,7 +1390,7 @@ public class ProjectsApiController implements ProjectsApi {
     	obj.put("nbWeeks", nbWeeks);
     	obj.put("hoursPerWeek", hoursPerWeek);
     	
-    	/* features */
+    	/* FEATURES */
     	
     	ResponseEntity<List<Feature>> f = this.getReleaseFeatures(projectId, releaseId);
     	List<Feature> features = f.getBody();
@@ -1397,7 +1409,7 @@ public class ProjectsApiController implements ProjectsApi {
     		
     		feat.put("priority", priority);
     		
-    		/* required skills de la feature*/
+    		/*REQUIRED SKILLS DE LA FEATURE I*/
     		JSONArray requiredSkills = new JSONArray();
     		List<Skill> skills = actual.getRequiredSkills();
     		
@@ -1408,7 +1420,7 @@ public class ProjectsApiController implements ProjectsApi {
     		}
     		feat.put("required_skills", requiredSkills);
     		
-    		/*depends on de la feature*/
+    		/*DEPENDS ON DE LA FEATURE i*/
     		JSONArray dependsOn = new JSONArray();
     		List<Feature> depends = actual.getDependsOn();
     		
@@ -1423,6 +1435,19 @@ public class ProjectsApiController implements ProjectsApi {
         		priority2.put("score", depends.get(j).getPriority());
         		
         		featureDepend.put("priority", priority);
+        		
+        		ResponseEntity<Feature> responseFeature = this.getFeature(projectId, new BigDecimal(depends.get(j).getId()));
+        		Feature dep = responseFeature.getBody();
+        		
+        		JSONArray requiredOfDepends = new JSONArray();
+        		for (int k = 0; k < dep.getRequiredSkills().size(); ++k) {
+        			JSONObject name = new JSONObject();
+            		name.put("name", dep.getRequiredSkills().get(k).getId());
+            		
+            		requiredOfDepends.add(name);
+        		}
+        		featureDepend.put("required_skills", requiredOfDepends);
+        		featureDepend.put("depends_on", new JSONArray());
         		
         		dependsOn.add(featureDepend);
     		}
@@ -1463,18 +1488,58 @@ public class ProjectsApiController implements ProjectsApi {
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
-    	/*JSONObject obj = new JSONObject();
-        obj.put("name", "mkyong.com");
-        obj.put("age", new Integer(100));
-
-        JSONArray list = new JSONArray();
-        list.add("msg 1");
-        list.add("msg 2");
-        list.add("msg 3");
-
-        obj.put("messages", list);*/
+    	String param = obj.toJSONString();
     	
-        return new ResponseEntity<Plan>(HttpStatus.OK);
+    	String       postUrl       = "http://62.14.219.13:8280/replan_optimizer/replan";
+    	HttpClient   httpClient    = HttpClientBuilder.create().build();
+    	HttpPost     post          = new HttpPost(postUrl);
+    	StringEntity postingString = null;
+    	
+    	JSONObject jsonResponse = null;
+		
+    	try {
+			postingString = new StringEntity(param);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+    	post.setEntity(postingString);
+    	post.setHeader("Content-type", "application/json");
+    	try {
+    		ResponseHandler <String> responseHandler = new BasicResponseHandler();
+            String responseBody = httpClient.execute(post, responseHandler);
+            
+            JSONParser parser = new JSONParser();
+            jsonResponse = (JSONObject) parser.parse(responseBody);
+            
+            //System.out.println(jsonResponse);
+
+            ObjectMapper mapper2 = new ObjectMapper();
+        	try {
+    			System.out.println(mapper2.writerWithDefaultPrettyPrinter().writeValueAsString(jsonResponse));
+    		} catch (JsonProcessingException e) {
+    			e.printStackTrace();
+    		}
+            
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+    	
+    	Object jobs = jsonResponse.get("jobs");
+    	
+    	Plan plan = new Plan();
+    	plan.setId(1);
+    	plan.setCreatedAt(LocalDate.now());
+    	plan.setReleaseId(releaseId.intValue());
+    	plan.setNumFeatures(features.size());
+    	//plan.setNumJobs(numJobs);
+    	
+    	System.out.println("SE VINO EL PLAN");
+    	HttpHeaders responseHeaders = new HttpHeaders();    	
+        return new ResponseEntity<Plan>(plan, responseHeaders,HttpStatus.OK);
     }
 
     public ResponseEntity<List<Release>> getReleases(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId) {

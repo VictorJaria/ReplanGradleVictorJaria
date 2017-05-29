@@ -20,10 +20,17 @@ public class Plan   {
   private Integer id = null;
 
   @JsonProperty("created_at")
-  private LocalDate createdAt = null;
+  private java.time.LocalDate createdAt = null;
 
   @JsonProperty("release_id")
   private Integer releaseId = null;
+  
+  @JsonProperty("num_features")
+  private Integer numFeatures = null;
+  
+  @JsonProperty("num_jobs")
+  private Integer numJobs = null; 
+  
 
   @JsonProperty("jobs")
   private List<Job> jobs = new ArrayList<Job>();
@@ -46,7 +53,7 @@ public class Plan   {
     this.id = id;
   }
 
-  public Plan createdAt(LocalDate createdAt) {
+  public Plan createdAt(java.time.LocalDate createdAt) {
     this.createdAt = createdAt;
     return this;
   }
@@ -56,12 +63,12 @@ public class Plan   {
    * @return createdAt
   **/
   @ApiModelProperty(value = "")
-  public LocalDate getCreatedAt() {
+  public java.time.LocalDate getCreatedAt() {
     return createdAt;
   }
 
-  public void setCreatedAt(LocalDate createdAt) {
-    this.createdAt = createdAt;
+  public void setCreatedAt(java.time.LocalDate localDate) {
+    this.createdAt = localDate;
   }
 
   public Plan releaseId(Integer releaseId) {
@@ -80,6 +87,32 @@ public class Plan   {
 
   public void setReleaseId(Integer releaseId) {
     this.releaseId = releaseId;
+  }
+  
+  /**
+   * Get numFeatures
+   * @return numFeatures
+  **/
+  @ApiModelProperty(value = "")
+  public Integer getNumFeatures() {
+    return numFeatures;
+  }
+
+  public void setNumFeatures(Integer numFeatures) {
+    this.numFeatures = numFeatures;
+  }
+  
+  /**
+   * Get numJobs
+   * @return numJobs
+  **/
+  @ApiModelProperty(value = "")
+  public Integer getNumJobs() {
+    return numJobs;
+  }
+
+  public void setNumJobs(Integer numJobs) {
+    this.numJobs = numJobs;
   }
 
   public Plan jobs(List<Job> jobs) {
@@ -134,6 +167,8 @@ public class Plan   {
     sb.append("    id: ").append(toIndentedString(id)).append("\n");
     sb.append("    createdAt: ").append(toIndentedString(createdAt)).append("\n");
     sb.append("    releaseId: ").append(toIndentedString(releaseId)).append("\n");
+    sb.append("    num_features: ").append(toIndentedString(numFeatures)).append("\n");
+    sb.append("    num_jobs: ").append(toIndentedString(numJobs)).append("\n");
     sb.append("    jobs: ").append(toIndentedString(jobs)).append("\n");
     sb.append("}");
     return sb.toString();
