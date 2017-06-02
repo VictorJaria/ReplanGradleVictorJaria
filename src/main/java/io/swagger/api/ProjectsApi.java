@@ -1,5 +1,6 @@
 package io.swagger.api;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import io.swagger.model.Error;
 import io.swagger.model.Feature;
@@ -22,6 +23,9 @@ import io.swagger.model.SkillData;
 import io.swagger.model.SkillId;
 
 import io.swagger.annotations.*;
+
+import org.apache.http.client.ClientProtocolException;
+import org.json.simple.parser.ParseException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,6 +35,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.util.List;
 
@@ -388,7 +394,7 @@ public interface ProjectsApi {
         produces = { "application/json" }, 
         method = RequestMethod.GET)
     ResponseEntity<Plan> getReleasePlan(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
-        @ApiParam(value = "ID of the realese",required=true ) @PathVariable("releaseId") BigDecimal releaseId);
+        @ApiParam(value = "ID of the realese",required=true ) @PathVariable("releaseId") BigDecimal releaseId) throws ClientProtocolException;
 
 
     @ApiOperation(value = "Get releases", notes = "This operation returns a list with the Releases in a given Project. ", response = Release.class, responseContainer = "List", tags={ "Releases", })

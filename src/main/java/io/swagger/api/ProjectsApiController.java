@@ -18,9 +18,12 @@ import io.swagger.model.Error;
 import io.swagger.model.Feature;
 import io.swagger.model.FeatureData;
 import io.swagger.model.FeatureId;
+import io.swagger.model.Job;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import io.swagger.model.NewFeatureData;
 import io.swagger.model.NewProjectData;
 import io.swagger.model.NewRelease;
@@ -65,6 +68,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+
+
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -1324,14 +1329,11 @@ public class ProjectsApiController implements ProjectsApi {
 					skill.setDescription(description);
 					requiredSkills.add(skill);
 				}
-				//System.out.println("SOMOS LAS REQUIRED SKILLS");
-				//System.out.println(requiredSkills);
 				feature.setRequiredSkills(requiredSkills);
 				
 				List<Feature> dependsOn = new ArrayList<Feature>();
 				
 				Statement stmt3 = con.createStatement();
-				System.out.println("IIIIDDD" + id);
 				ResultSet rs3 = stmt3.executeQuery("select * from features INNER JOIN featuresDependencies ON featuresDependencies.id_feature = " + feature.getId() + " AND features.id = featuresDependencies.dependencies");
 				while(rs3.next()){
 					Feature f = new Feature();
@@ -1353,8 +1355,6 @@ public class ProjectsApiController implements ProjectsApi {
 					f.setPriority(priority2);
 					dependsOn.add(f);
 				}
-				System.out.println("SOMOS LAS DEPENDS ON");
-				System.out.println(dependsOn);
 				feature.setDependsOn(dependsOn);
 				list.add(feature);
 			}
@@ -1368,8 +1368,8 @@ public class ProjectsApiController implements ProjectsApi {
 
     @SuppressWarnings("unchecked")
 	public ResponseEntity<Plan> getReleasePlan(@ApiParam(value = "ID of the project (e.g. \"1\" or \"siemens\")",required=true ) @PathVariable("projectId") String projectId,
-        @ApiParam(value = "ID of the realese",required=true ) @PathVariable("releaseId") BigDecimal releaseId) {
-        // do some magic!
+        @ApiParam(value = "ID of the realese",required=true ) @PathVariable("releaseId") BigDecimal releaseId) throws ClientProtocolException {
+    	// do some magic!
     	JSONObject obj = new JSONObject();
     	
     	ResponseEntity<Release> r = this.getRelease(projectId, releaseId);
@@ -1424,7 +1424,6 @@ public class ProjectsApiController implements ProjectsApi {
     		JSONArray dependsOn = new JSONArray();
     		List<Feature> depends = actual.getDependsOn();
     		
-    		System.out.println("SOY LAS DEPENDS ON: " + dependsOn);
     		for (int j = 0; j < depends.size(); ++j) {
         		JSONObject featureDepend = new JSONObject();
         		featureDepend.put("name", depends.get(j).getId());
@@ -1482,6 +1481,7 @@ public class ProjectsApiController implements ProjectsApi {
     	}
     	obj.put("resources", resourcesList);
     	
+    	/*END OF HTTP PARAMETER .  BEGIN OF HTTP CONNECTION*/
     	ObjectMapper mapper = new ObjectMapper();
     	try {
 			System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj));
@@ -1504,14 +1504,14 @@ public class ProjectsApiController implements ProjectsApi {
 		}
     	post.setEntity(postingString);
     	post.setHeader("Content-type", "application/json");
+    	
+    	/*HTTP EXECUTION AND CATCH RESPONSE*/
     	try {
     		ResponseHandler <String> responseHandler = new BasicResponseHandler();
             String responseBody = httpClient.execute(post, responseHandler);
             
             JSONParser parser = new JSONParser();
             jsonResponse = (JSONObject) parser.parse(responseBody);
-            
-            //System.out.println(jsonResponse);
 
             ObjectMapper mapper2 = new ObjectMapper();
         	try {
@@ -1528,16 +1528,63 @@ public class ProjectsApiController implements ProjectsApi {
 			e.printStackTrace();
 		}
     	
-    	Object jobs = jsonResponse.get("jobs");
+    	/*START PLAN*/
+    	/*String stringJobs = jsonResponse.get("jobs").toString();  //.toJSONString();
+    	JSONObject jsonJobs = null;
+    	
+    	JSONParser parser = new JSONParser();
+        try {
+        	jsonJobs = (JSONObject) parser.parse(stringJobs);
+        	System.out.println("HOLA:  " + jsonJobs);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
     	
     	Plan plan = new Plan();
     	plan.setId(1);
     	plan.setCreatedAt(LocalDate.now());
     	plan.setReleaseId(releaseId.intValue());
     	plan.setNumFeatures(features.size());
-    	//plan.setNumJobs(numJobs);
     	
-    	System.out.println("SE VINO EL PLAN");
+    	JSONArray jsonarr = (JSONArray) jsonResponse.get("jobs");
+    	plan.setNumJobs(jsonarr.size());
+    	
+    	List<Job> llistatDeJobs = new ArrayList<Job>();
+    	for (int i = 0; i < jsonarr.size(); ++i) {
+    		System.out.println(jsonarr.size());
+    		Job job = new Job();
+    		JSONObject jsonJob = (JSONObject) jsonarr.get(i);
+    		
+    		JSONObject featureJob = (JSONObject) jsonJob.get("feature");
+    		BigDecimal featureId = new BigDecimal(featureJob.get("name").toString());
+
+    		ResponseEntity<Feature> entityFeature = this.getFeature(projectId, featureId);
+    		Feature feat = entityFeature.getBody();
+    		job.setFeature(feat);
+    		
+    		JSONObject resourceJob = (JSONObject) jsonJob.get("resource");
+    		BigDecimal resourceId = new BigDecimal(resourceJob.get("name").toString());
+    		
+    		ResponseEntity<List<Resource>> entityResources = this.getProjectResources(projectId);
+    		List<Resource> llistat = entityResources.getBody();
+    		Resource reso = new Resource();
+    		for (int j = 0; j < llistat.size(); ++j) {
+    			if (llistat.get(j).getId() ==  resourceId.intValue()) {
+    				reso = llistat.get(j);
+    			}
+    		}
+    		job.setFeature(feat);
+    		job.setResource(reso);
+    		System.out.println("UN JOB");
+    		llistatDeJobs.add(job);
+    		
+//    		System.out.println(jsonJob.get("endHour"));
+//    		System.out.println(jsonJob.get("beginHour"));
+    	}
+    	plan.setJobs(llistatDeJobs);
+    	
+    	System.out.println("E AQUÍ EL PLAN");
     	HttpHeaders responseHeaders = new HttpHeaders();    	
         return new ResponseEntity<Plan>(plan, responseHeaders,HttpStatus.OK);
     }
